@@ -1,0 +1,132 @@
+"use client";
+
+import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
+import { useAuthStore } from "@/store/authStore";
+import {
+  LayoutDashboard,
+  Users,
+  CreditCard,
+  LogOut,
+  Wallet,
+  User as UserIcon,
+  ShieldAlert,
+} from "lucide-react";
+import { cn } from "@/lib/utils";
+
+const navItems = [
+  { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
+  { label: "My Groups", href: "/groups", icon: Users },
+  { label: "Payments", href: "/payments", icon: CreditCard },
+  { label: "My Payouts", href: "/payouts", icon: Wallet },
+  { label: "Profile", href: "/profile", icon: UserIcon },
+];
+
+const adminItems = [
+  { label: "Admin Panel", href: "/admin", icon: ShieldAlert },
+];
+
+export default function Sidebar() {
+  const pathname = usePathname();
+  const router = useRouter();
+  const { user, logout } = useAuthStore();
+
+  const handleLogout = () => {
+    logout();
+    router.push("/login");
+  };
+
+  return (
+    <aside className="w-64 min-h-screen bg-gray-900 text-white flex flex-col">
+      {/* Brand */}
+      <div className="px-6 py-6 border-b border-gray-700">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-full bg-emerald-500 flex items-center justify-center font-bold text-lg">
+            A
+          </div>
+          <div>
+            <p className="font-bold text-white">Ajo Platform</p>
+            <p className="text-xs text-gray-400">Savings Circle</p>
+          </div>
+        </div>
+      </div>
+
+      {/* User Info */}
+      <div className="px-6 py-4 border-b border-gray-700">
+        <p className="text-sm font-medium text-white">
+          {user?.firstName} {user?.lastName}
+        </p>
+        <p className="text-xs text-gray-400 truncate">{user?.email}</p>
+        {user?.role === "ADMIN" && (
+          <span className="inline-block mt-1 text-xs bg-purple-600 text-white px-2 py-0.5 rounded-full">
+            Admin
+          </span>
+        )}
+      </div>
+
+      {/* Nav Links */}
+      <nav className="flex-1 px-4 py-4 space-y-1">
+        {navItems.map((item) => {
+          const Icon = item.icon;
+          const isActive = pathname === item.href;
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              className={cn(
+                "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
+                isActive
+                  ? "bg-emerald-600 text-white"
+                  : "text-gray-400 hover:bg-gray-800 hover:text-white"
+              )}
+            >
+              <Icon size={18} />
+              {item.label}
+            </Link>
+          );
+        })}
+
+        {/* Admin only section */}
+        {user?.role === "ADMIN" && (
+          <>
+            <div className="pt-4 pb-2">
+              <p className="text-xs text-gray-500 uppercase tracking-wider px-3">
+                Admin
+              </p>
+            </div>
+            {adminItems.map((item) => {
+              const Icon = item.icon;
+              const isActive = pathname.startsWith(item.href);
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={cn(
+                    "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
+                    isActive
+                      ? "bg-purple-600 text-white"
+                      : "text-gray-400 hover:bg-gray-800 hover:text-white"
+                  )}
+                >
+                  <Icon size={18} />
+                  {item.label}
+                </Link>
+              );
+            })}
+          </>
+        )}
+      </nav>
+
+      {/* Logout */}
+      <div className="px-4 py-4 border-t border-gray-700">
+        <button
+          onClick={handleLogout}
+          className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-400 hover:bg-gray-800 hover:text-white transition-colors w-full"
+        >
+          <LogOut size={18} />
+          Sign Out
+        </button>
+      </div>
+    </aside>
+  );
+}
