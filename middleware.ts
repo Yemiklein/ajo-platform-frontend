@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
 // const publicRoutes = ["/login", "/register"];
-const publicRoutes = ["/login", "/register", "/payments/callback"];
+const publicRoutes = ["/login", "/register", "/register-admin", "/payments/callback"];
 
 export function middleware(request: NextRequest) {
   const token = request.cookies.get("ajo_token")?.value;
