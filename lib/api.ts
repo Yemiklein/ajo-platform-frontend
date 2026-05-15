@@ -46,6 +46,10 @@ export const authAPI = {
     api.post("/api/auth/register", data),
   login: (data: import("@/types").LoginRequest) =>
     api.post("/api/auth/login", data),
+  registerAdmin: (data: import("@/types").RegisterRequest, adminSecret: string) =>
+    api.post("/api/auth/register-admin", data, {
+      headers: { "X-Admin-Secret": adminSecret },
+    }),
 };
 
 // ===== Groups =====
