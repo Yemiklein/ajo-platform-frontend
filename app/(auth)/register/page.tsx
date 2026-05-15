@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Eye, EyeOff } from "lucide-react";
 
 const registerSchema = z.object({
   firstName: z.string().min(2, "First name is required"),
@@ -33,6 +34,8 @@ export default function RegisterPage() {
   const router = useRouter();
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
 
   const {
     register,
@@ -90,7 +93,7 @@ export default function RegisterPage() {
                   <Label htmlFor="firstName">First name</Label>
                   <Input
                     id="firstName"
-                    placeholder="Adeyemi"
+                    placeholder="Soyinka"
                     {...register("firstName")}
                     className={errors.firstName ? "border-red-400" : ""}
                   />
@@ -102,7 +105,7 @@ export default function RegisterPage() {
                   <Label htmlFor="lastName">Last name</Label>
                   <Input
                     id="lastName"
-                    placeholder="Okafor"
+                    placeholder="Wole"
                     {...register("lastName")}
                     className={errors.lastName ? "border-red-400" : ""}
                   />
@@ -145,13 +148,22 @@ export default function RegisterPage() {
               {/* Password */}
               <div className="space-y-1">
                 <Label htmlFor="password">Password</Label>
-                <Input
-                  id="password"
-                  type="password"
-                  placeholder="••••••••"
-                  {...register("password")}
-                  className={errors.password ? "border-red-400" : ""}
-                />
+                <div className="relative">
+                  <Input
+                    id="password"
+                    type={showPassword ? "text" : "password"}
+                    placeholder="••••••••"
+                    {...register("password")}
+                    className={errors.password ? "border-red-400 pr-10" : "pr-10"}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  >
+                    {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                  </button>
+                </div>
                 {errors.password && (
                   <p className="text-red-500 text-xs">{errors.password.message}</p>
                 )}
@@ -160,13 +172,22 @@ export default function RegisterPage() {
               {/* Confirm Password */}
               <div className="space-y-1">
                 <Label htmlFor="confirmPassword">Confirm password</Label>
-                <Input
-                  id="confirmPassword"
-                  type="password"
-                  placeholder="••••••••"
-                  {...register("confirmPassword")}
-                  className={errors.confirmPassword ? "border-red-400" : ""}
-                />
+                <div className="relative">
+                  <Input
+                    id="confirmPassword"
+                    type={showConfirm ? "text" : "password"}
+                    placeholder="••••••••"
+                    {...register("confirmPassword")}
+                    className={errors.confirmPassword ? "border-red-400 pr-10" : "pr-10"}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirm(!showConfirm)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  >
+                    {showConfirm ? <EyeOff size={16} /> : <Eye size={16} />}
+                  </button>
+                </div>
                 {errors.confirmPassword && (
                   <p className="text-red-500 text-xs">{errors.confirmPassword.message}</p>
                 )}

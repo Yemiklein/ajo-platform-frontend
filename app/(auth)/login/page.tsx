@@ -18,6 +18,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Eye, EyeOff } from "lucide-react";
 
 const loginSchema = z.object({
   email: z.string().email("Enter a valid email address"),
@@ -33,6 +34,7 @@ function LoginForm() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const justRegistered = searchParams.get("registered") === "true";
+  const [showPassword, setShowPassword] = useState(false);
 
   const {
     register,
@@ -53,7 +55,7 @@ function LoginForm() {
     setError("");
     try {
       const response = await authAPI.login(data);
-console.log("Login response:", response.data);
+      console.log("Login response:", response.data);
       const { token, ...userData } = response.data;
       const user = {
         id: userData.id,
@@ -132,17 +134,24 @@ console.log("Login response:", response.data);
               {/* Password */}
               <div className="space-y-1">
                 <Label htmlFor="password">Password</Label>
-                <Input
-                  id="password"
-                  type="password"
-                  placeholder="••••••••"
-                  {...register("password")}
-                  className={errors.password ? "border-red-400" : ""}
-                />
+                <div className="relative">
+                  <Input
+                    id="password"
+                    type={showPassword ? "text" : "password"}
+                    placeholder="••••••••"
+                    {...register("password")}
+                    className={errors.password ? "border-red-400 pr-10" : "pr-10"}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  >
+                    {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                  </button>
+                </div>
                 {errors.password && (
-                  <p className="text-red-500 text-xs">
-                    {errors.password.message}
-                  </p>
+                  <p className="text-red-500 text-xs">{errors.password.message}</p>
                 )}
               </div>
 

@@ -16,7 +16,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { ShieldAlert } from "lucide-react";
+import { ShieldAlert, Eye, EyeOff } from "lucide-react";
 import Link from "next/link";
 
 const adminRegisterSchema = z.object({
@@ -41,6 +41,9 @@ export default function AdminRegisterPage() {
   const router = useRouter();
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [showSecret, setShowSecret] = useState(false);
 
   const {
     register,
@@ -61,7 +64,8 @@ export default function AdminRegisterPage() {
     } catch (err: unknown) {
       const error = err as { response?: { data?: { message?: string } } };
       setError(
-        error.response?.data?.message || "Registration failed. Check your admin secret."
+        error.response?.data?.message ||
+          "Registration failed. Check your admin secret."
       );
     } finally {
       setLoading(false);
@@ -71,7 +75,6 @@ export default function AdminRegisterPage() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-50 to-violet-100 px-4 py-12">
       <div className="w-full max-w-md">
-        {/* Logo */}
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-purple-600 text-white mb-4">
             <ShieldAlert size={28} />
@@ -113,7 +116,7 @@ export default function AdminRegisterPage() {
                   <Label htmlFor="lastName">Last name</Label>
                   <Input
                     id="lastName"
-                    placeholder="Okafor"
+                    placeholder="Klein"
                     {...register("lastName")}
                     className={errors.lastName ? "border-red-400" : ""}
                   />
@@ -156,13 +159,22 @@ export default function AdminRegisterPage() {
               {/* Password */}
               <div className="space-y-1">
                 <Label htmlFor="password">Password</Label>
-                <Input
-                  id="password"
-                  type="password"
-                  placeholder="••••••••"
-                  {...register("password")}
-                  className={errors.password ? "border-red-400" : ""}
-                />
+                <div className="relative">
+                  <Input
+                    id="password"
+                    type={showPassword ? "text" : "password"}
+                    placeholder="••••••••"
+                    {...register("password")}
+                    className={errors.password ? "border-red-400 pr-10" : "pr-10"}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  >
+                    {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                  </button>
+                </div>
                 {errors.password && (
                   <p className="text-red-500 text-xs">{errors.password.message}</p>
                 )}
@@ -171,13 +183,22 @@ export default function AdminRegisterPage() {
               {/* Confirm Password */}
               <div className="space-y-1">
                 <Label htmlFor="confirmPassword">Confirm password</Label>
-                <Input
-                  id="confirmPassword"
-                  type="password"
-                  placeholder="••••••••"
-                  {...register("confirmPassword")}
-                  className={errors.confirmPassword ? "border-red-400" : ""}
-                />
+                <div className="relative">
+                  <Input
+                    id="confirmPassword"
+                    type={showConfirm ? "text" : "password"}
+                    placeholder="••••••••"
+                    {...register("confirmPassword")}
+                    className={errors.confirmPassword ? "border-red-400 pr-10" : "pr-10"}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirm(!showConfirm)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  >
+                    {showConfirm ? <EyeOff size={16} /> : <Eye size={16} />}
+                  </button>
+                </div>
                 {errors.confirmPassword && (
                   <p className="text-red-500 text-xs">
                     {errors.confirmPassword.message}
@@ -188,13 +209,22 @@ export default function AdminRegisterPage() {
               {/* Admin Secret */}
               <div className="space-y-1">
                 <Label htmlFor="adminSecret">Admin Secret Key</Label>
-                <Input
-                  id="adminSecret"
-                  type="password"
-                  placeholder="Enter admin secret"
-                  {...register("adminSecret")}
-                  className={errors.adminSecret ? "border-red-400" : ""}
-                />
+                <div className="relative">
+                  <Input
+                    id="adminSecret"
+                    type={showSecret ? "text" : "password"}
+                    placeholder="Enter admin secret"
+                    {...register("adminSecret")}
+                    className={errors.adminSecret ? "border-red-400 pr-10" : "pr-10"}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowSecret(!showSecret)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  >
+                    {showSecret ? <EyeOff size={16} /> : <Eye size={16} />}
+                  </button>
+                </div>
                 {errors.adminSecret && (
                   <p className="text-red-500 text-xs">{errors.adminSecret.message}</p>
                 )}
@@ -210,7 +240,10 @@ export default function AdminRegisterPage() {
             </form>
 
             <p className="text-center text-sm text-gray-500 mt-6">
-              <Link href="/login" className="text-purple-600 font-medium hover:underline">
+              <Link
+                href="/login"
+                className="text-purple-600 font-medium hover:underline"
+              >
                 Back to Login
               </Link>
             </p>
