@@ -45,7 +45,7 @@ export default function Sidebar() {
   };
 
   const SidebarContent = () => (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-screen">
       {/* Brand */}
       <div className="px-6 py-6 border-b border-gray-700">
         <div className="flex items-center gap-3">

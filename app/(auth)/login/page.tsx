@@ -133,7 +133,13 @@ function LoginForm() {
 
               {/* Password */}
               <div className="space-y-1">
-                <Label htmlFor="password">Password</Label>
+                  <Label htmlFor="password">Password</Label>
+  <Link
+    href="/forgot-password"
+    className="text-xs text-emerald-600 hover:underline"
+  >
+    Forgot password?
+  </Link>
                 <div className="relative">
                   <Input
                     id="password"

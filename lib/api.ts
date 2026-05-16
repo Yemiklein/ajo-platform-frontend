@@ -44,12 +44,23 @@ api.interceptors.response.use(
 export const authAPI = {
   register: (data: import("@/types").RegisterRequest) =>
     api.post("/api/auth/register", data),
+
   login: (data: import("@/types").LoginRequest) =>
     api.post("/api/auth/login", data),
+
   registerAdmin: (data: import("@/types").RegisterRequest, adminSecret: string) =>
     api.post("/api/auth/register-admin", data, {
       headers: { "X-Admin-Secret": adminSecret },
     }),
+
+  forgotPassword: (identifier: string, type: string) =>
+    api.post("/api/auth/forgot-password", { identifier, type }),
+
+  verifyOtp: (identifier: string, otp: string) =>
+    api.post("/api/auth/verify-otp", { identifier, otp }),
+  
+  resetPassword: (identifier: string, otp: string, newPassword: string) =>
+    api.post("/api/auth/reset-password", { identifier, otp, newPassword }),
 };
 
 // ===== Groups =====
