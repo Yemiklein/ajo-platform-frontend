@@ -71,7 +71,25 @@ export const groupsAPI = {
     api.post("/api/groups/join", data),
   getMyGroups: () => api.get("/api/groups"),
   getById: (id: number) => api.get(`/api/groups/${id}`),
+  
+  // Invite methods
+  inviteMember: (groupId: number, data: { email: string; message?: string }) =>
+    api.post(`/api/groups/${groupId}/invite`, data),
+  
+  // Join via invite code
+  joinViaInvite: (inviteCode: string) =>
+    api.post(`/api/groups/join/${inviteCode}`),  // Make sure this matches your backend endpoint
+  
+  sendReminders: (groupId: number) =>
+    api.post(`/api/groups/${groupId}/send-reminders`),
+  
+  getContributionSummary: (groupId: number) =>
+    api.get(`/api/groups/${groupId}/contributions/summary`),
+  
+  getMemberContributions: (groupId: number, memberId: number) =>
+    api.get(`/api/groups/${groupId}/members/${memberId}/contributions`),
 };
+
 
 // ===== Contributions =====
 export const contributionsAPI = {

@@ -45,21 +45,31 @@ export default function RegisterPage() {
     resolver: zodResolver(registerSchema),
   });
 
-  const onSubmit = async (data: RegisterForm) => {
-    setLoading(true);
-    setError("");
-    try {
-      const { confirmPassword, ...payload } = data;
-      void confirmPassword;
-      await authAPI.register(payload);
+const onSubmit = async (data: RegisterForm) => {
+  setLoading(true);
+  setError("");
+  try {
+    const { confirmPassword, ...payload } = data;
+    void confirmPassword;
+    await authAPI.register(payload);
+    
+    // Check for pending invite
+    const pendingInviteCode = localStorage.getItem("pendingInviteCode");
+    if (pendingInviteCode) {
+      localStorage.removeItem("pendingInviteCode");
+      // Pass invite code to login page via URL parameter
+      router.push(`/login?registered=true&invite=${pendingInviteCode}`);
+    } else {
       router.push("/login?registered=true");
-    } catch (err: unknown) {
-      const error = err as { response?: { data?: { message?: string } } };
-      setError(error.response?.data?.message || "Registration failed. Try again.");
-    } finally {
-      setLoading(false);
     }
-  };
+    
+  } catch (err: unknown) {
+    const error = err as { response?: { data?: { message?: string } } };
+    setError(error.response?.data?.message || "Registration failed. Try again.");
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-emerald-100 px-4 py-12">

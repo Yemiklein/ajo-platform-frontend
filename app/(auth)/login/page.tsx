@@ -50,34 +50,62 @@ function LoginForm() {
     }
   }, [isAuthenticated, router]);
 
-  const onSubmit = async (data: LoginForm) => {
-    setLoading(true);
-    setError("");
-    try {
-      const response = await authAPI.login(data);
-      console.log("Login response:", response.data);
-      const { token, ...userData } = response.data;
-      const user = {
-        id: userData.id,
-        firstName: userData.firstName,
-        lastName: userData.lastName,
-        email: userData.email,
-        phoneNumber: userData.phoneNumber ?? "",
-        role: userData.role ?? "USER",
-        enabled: userData.enabled ?? true,
-        createdAt: userData.createdAt ?? "",
-      };
-      setAuth(user, token);
+useEffect(() => {
+  // Check if there's an invite code in URL (from registration redirect)
+  const inviteParam = searchParams.get("invite");
+  if (inviteParam) {
+    console.log("Found invite in URL param:", inviteParam);
+    localStorage.setItem("pendingInviteCode", inviteParam);
+  }
+  
+  // Also check if there's already a pending invite in localStorage
+  const pendingInvite = localStorage.getItem("pendingInviteCode");
+  if (pendingInvite) {
+    console.log("Found pending invite in localStorage:", pendingInvite);
+  }
+}, [searchParams]);
+
+const onSubmit = async (data: LoginForm) => {
+  setLoading(true);
+  setError("");
+  try {
+    const response = await authAPI.login(data);
+    console.log("Login response:", response.data);
+    const { token, ...userData } = response.data;
+    const user = {
+      id: userData.id,
+      firstName: userData.firstName,
+      lastName: userData.lastName,
+      email: userData.email,
+      phoneNumber: userData.phoneNumber ?? "",
+      role: userData.role ?? "USER",
+      enabled: userData.enabled ?? true,
+      createdAt: userData.createdAt ?? "",
+    };
+    setAuth(user, token);
+    
+    // Check for pending invite after successful login
+    const pendingInviteCode = localStorage.getItem("pendingInviteCode");
+    console.log("Pending invite after login:", pendingInviteCode);
+    
+    if (pendingInviteCode) {
+      console.log("Redirecting to join page with code:", pendingInviteCode);
+      localStorage.removeItem("pendingInviteCode");
+      router.push(`/join/${pendingInviteCode}`);
+    } else {
+      console.log("No pending invite, going to dashboard");
       router.push("/dashboard");
-    } catch (err: unknown) {
-      const error = err as { response?: { data?: { message?: string } } };
-      setError(
-        error.response?.data?.message || "Invalid email or password"
-      );
-    } finally {
-      setLoading(false);
     }
-  };
+    
+  } catch (err: unknown) {
+    const error = err as { response?: { data?: { message?: string } } };
+    setError(
+      error.response?.data?.message || "Invalid email or password"
+    );
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-emerald-100 px-4">

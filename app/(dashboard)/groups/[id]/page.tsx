@@ -14,6 +14,7 @@ import Link from "next/link";
 import InviteMemberModal from "@/components/groups/InviteMemberModal";
 import ContributionTracker from "@/components/groups/ContributionTracker";
 
+
 const statusColors: Record<string, string> = {
     ACTIVE: "bg-emerald-100 text-emerald-700",
     PENDING: "bg-yellow-100 text-yellow-700",
@@ -36,12 +37,12 @@ export default function GroupDetailPage() {
     const [payoutLoading, setPayoutLoading] = useState(false);
     const [error, setError] = useState("");
     const [successMsg, setSuccessMsg] = useState("");
-    
+
     // NEW: State for new features
     const [showInviteModal, setShowInviteModal] = useState(false);
     const [showContributionTracker, setShowContributionTracker] = useState(false);
     const [sendingReminders, setSendingReminders] = useState(false);
-    
+
     const currentCycle = 1;
 
     useEffect(() => {
@@ -104,34 +105,21 @@ export default function GroupDetailPage() {
         }
     };
 
-    // NEW: Handle sending reminders
-    const handleSendReminders = async () => {
-        setSendingReminders(true);
-        setError("");
-        setSuccessMsg("");
-        try {
-            // Call your backend endpoint for sending reminders
-            const response = await fetch(`/api/groups/${id}/send-reminders`, {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${localStorage.getItem('ajo_token')}`,
-                    'Content-Type': 'application/json'
-                }
-            });
-            
-            if (response.ok) {
-                setSuccessMsg("Reminders sent successfully to members who haven't paid!");
-            } else {
-                const errorData = await response.json();
-                setError(errorData.message || "Failed to send reminders");
-            }
-        } catch (err) {
-            setError("Failed to send reminders");
-            console.error(err);
-        } finally {
-            setSendingReminders(false);
-        }
-    };
+// NEW: Handle sending reminders
+const handleSendReminders = async () => {
+  setSendingReminders(true);
+  setError("");
+  setSuccessMsg("");
+  try {
+    await groupsAPI.sendReminders(Number(id));
+    setSuccessMsg("Reminders sent successfully to members who haven't paid!");
+  } catch (err: any) {
+    setError(err.response?.data?.message || "Failed to send reminders");
+    console.error(err);
+  } finally {
+    setSendingReminders(false);
+  }
+};
 
     const isCreator = group?.createdByName === `${user?.firstName} ${user?.lastName}`;
     const allPaid = progress ? progress.paidCount === progress.totalMembers : false;
@@ -176,9 +164,10 @@ export default function GroupDetailPage() {
                         <ArrowLeft size={16} />
                         Back to Groups
                     </Link>
-                    
+
                     {/* NEW: Action Buttons for Group Creator */}
-                    {isCreator && group.status === "ACTIVE" && (
+                    {/* Action Buttons for Group Creator */}
+                    {isCreator && (group.status === "PENDING" || group.status === "ACTIVE") && (
                         <div className="flex gap-3">
                             <Button
                                 onClick={() => setShowInviteModal(true)}
@@ -188,24 +177,30 @@ export default function GroupDetailPage() {
                                 <UserPlus size={16} />
                                 Invite Members
                             </Button>
-                            <Button
-                                onClick={() => setShowContributionTracker(!showContributionTracker)}
-                                variant="outline"
-                                size="sm"
-                                className="gap-2"
-                            >
-                                {showContributionTracker ? "Hide" : "View"} Contribution Stats
-                            </Button>
-                            <Button
-                                onClick={handleSendReminders}
-                                disabled={sendingReminders}
-                                variant="outline"
-                                size="sm"
-                                className="gap-2"
-                            >
-                                <Bell size={16} />
-                                {sendingReminders ? "Sending..." : "Send Reminders"}
-                            </Button>
+
+                            {/* Only show these buttons for ACTIVE groups */}
+                            {group.status === "ACTIVE" && (
+                                <>
+                                    <Button
+                                        onClick={() => setShowContributionTracker(!showContributionTracker)}
+                                        variant="outline"
+                                        size="sm"
+                                        className="gap-2"
+                                    >
+                                        {showContributionTracker ? "Hide" : "View"} Contribution Stats
+                                    </Button>
+                                    <Button
+                                        onClick={handleSendReminders}
+                                        disabled={sendingReminders}
+                                        variant="outline"
+                                        size="sm"
+                                        className="gap-2"
+                                    >
+                                        <Bell size={16} />
+                                        {sendingReminders ? "Sending..." : "Send Reminders"}
+                                    </Button>
+                                </>
+                            )}
                         </div>
                     )}
                 </div>
@@ -447,11 +442,11 @@ export default function GroupDetailPage() {
                     groupId={Number(id)}
                     groupName={group.name}
                     onClose={() => setShowInviteModal(false)}
-                    onInviteSent={() => {
-                        setShowInviteModal(false);
-                        setSuccessMsg("Invite sent successfully!");
-                        setTimeout(() => setSuccessMsg(""), 3000);
-                    }}
+                    // onInviteSent={() => {
+                    //     setShowInviteModal(false);
+                    //     setSuccessMsg("Invite sent successfully!");
+                    //     setTimeout(() => setSuccessMsg(""), 3000);
+                    // }}
                 />
             )}
         </div>

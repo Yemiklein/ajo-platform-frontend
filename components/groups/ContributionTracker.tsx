@@ -2,25 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { TrendingUp, Users, DollarSign, CheckCircle, XCircle } from "lucide-react";
-
-/**
- * Simple API client implementation to replace '@/lib/api-client' missing module.
- * Adjust BASE_URL if your API is hosted on a different origin (set NEXT_PUBLIC_API_BASE_URL).
- */
-const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "";
-export const apiClient = {
-  async get(path: string) {
-    const res = await fetch(`${BASE_URL}${path}`, {
-      credentials: "include",
-      headers: { "Content-Type": "application/json" },
-    });
-    if (!res.ok) {
-      const text = await res.text();
-      throw new Error(`API GET ${path} failed: ${res.status} ${text}`);
-    }
-    return await res.json();
-  },
-};
+import { groupsAPI } from "@/lib/api";
 
 interface ContributionTrackerProps {
   groupId: number;
@@ -36,8 +18,8 @@ export default function ContributionTracker({ groupId }: ContributionTrackerProp
 
   const fetchSummary = async () => {
     try {
-      const data = await apiClient.get(`/groups/${groupId}/contributions/summary`);
-      setSummary(data);
+      const response = await groupsAPI.getContributionSummary(groupId);
+      setSummary(response.data);
     } catch (error) {
       console.error("Failed to fetch contribution summary:", error);
     } finally {

@@ -1,63 +1,39 @@
 "use client";
 
 import { useState } from "react";
-import { X, Copy, Check, Mail } from "lucide-react";
-
-const apiClient = {
-  post: async (url: string, body: any) => {
-    const token = localStorage.getItem('ajo_token');
-    const res = await fetch(url, {
-      method: "POST",
-      headers: { 
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${token}`  // Add auth token
-      },
-      body: JSON.stringify(body),
-    });
-    if (!res.ok) {
-      const text = await res.text();
-      throw new Error(`API error: ${res.status} ${text}`);
-    }
-    return res.json();
-  },
-};
+import { X, Copy, Check } from "lucide-react";
+import { groupsAPI } from "@/lib/api";
 
 interface InviteMemberModalProps {
   groupId: number;
   groupName: string;
   onClose: () => void;
-  onInviteSent?: () => void;  // ← ADD THIS LINE
 }
 
-export default function InviteMemberModal({ groupId, groupName, onClose, onInviteSent }: InviteMemberModalProps) {
+export default function InviteMemberModal({ groupId, groupName, onClose }: InviteMemberModalProps) {
   const [email, setEmail] = useState("");
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
   const [inviteLink, setInviteLink] = useState("");
   const [copied, setCopied] = useState(false);
+  const [error, setError] = useState("");
 
   const handleInvite = async () => {
     setLoading(true);
+    setError("");
     try {
-      const response = await apiClient.post(`/api/groups/${groupId}/invite`, {
-        email,
-        message
-      });
-      setInviteLink(response.inviteLink);
+      const response = await groupsAPI.inviteMember(groupId, { email, message });
       
-      // ← ADD THIS: Call the callback when invite is successful
-      if (onInviteSent) {
-        onInviteSent();
-      }
+      console.log('Invite link received:', response.data.inviteLink);
       
-      // Auto-close after showing invite link for 3 seconds
-      setTimeout(() => {
-        onClose();
-      }, 3000);
+      // Set the invite link - this should trigger the UI to show the link section
+      setInviteLink(response.data.inviteLink);
       
-    } catch (error) {
-      console.error("Failed to send invite:", error);
-    } finally {
+      // Don't call onInviteSent - let the user see the link
+      
+    } catch (err: any) {
+      console.error("Failed to send invite:", err);
+      setError(err.response?.data?.message || err.message || "Failed to send invite");
       setLoading(false);
     }
   };
@@ -68,6 +44,9 @@ export default function InviteMemberModal({ groupId, groupName, onClose, onInvit
     setTimeout(() => setCopied(false), 2000);
   };
 
+  // Debug: log when inviteLink changes
+  console.log('Current inviteLink state:', inviteLink);
+
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div className="bg-white rounded-lg p-6 max-w-md w-full">
@@ -77,6 +56,12 @@ export default function InviteMemberModal({ groupId, groupName, onClose, onInvit
             <X size={20} />
           </button>
         </div>
+
+        {error && (
+          <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">
+            {error}
+          </div>
+        )}
 
         {!inviteLink ? (
           <div className="space-y-4">
@@ -116,8 +101,11 @@ export default function InviteMemberModal({ groupId, groupName, onClose, onInvit
           </div>
         ) : (
           <div className="space-y-4">
+            <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+              <p className="text-green-700 text-sm">✓ Invite created successfully!</p>
+            </div>
             <div className="bg-gray-50 p-4 rounded-lg">
-              <p className="text-sm text-gray-600 mb-2">Share this invite link:</p>
+              <p className="text-sm text-gray-600 mb-2">Share this invite link with {email}:</p>
               <div className="flex gap-2">
                 <input
                   type="text"
