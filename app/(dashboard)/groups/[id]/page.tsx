@@ -9,8 +9,10 @@ import TopBar from "@/components/shared/TopBar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Users, Trophy, CreditCard } from "lucide-react";
+import { ArrowLeft, Users, Trophy, CreditCard, Bell, UserPlus } from "lucide-react";
 import Link from "next/link";
+import InviteMemberModal from "@/components/groups/InviteMemberModal";
+import ContributionTracker from "@/components/groups/ContributionTracker";
 
 const statusColors: Record<string, string> = {
     ACTIVE: "bg-emerald-100 text-emerald-700",
@@ -19,6 +21,9 @@ const statusColors: Record<string, string> = {
     CANCELLED: "bg-red-100 text-red-700",
     PAID: "bg-emerald-100 text-emerald-700",
     FAILED: "bg-red-100 text-red-700",
+    UP_TO_DATE: "bg-emerald-100 text-emerald-700",
+    BEHIND: "bg-yellow-100 text-yellow-700",
+    DEFAULTED: "bg-red-100 text-red-700",
 };
 
 export default function GroupDetailPage() {
@@ -31,6 +36,12 @@ export default function GroupDetailPage() {
     const [payoutLoading, setPayoutLoading] = useState(false);
     const [error, setError] = useState("");
     const [successMsg, setSuccessMsg] = useState("");
+    
+    // NEW: State for new features
+    const [showInviteModal, setShowInviteModal] = useState(false);
+    const [showContributionTracker, setShowContributionTracker] = useState(false);
+    const [sendingReminders, setSendingReminders] = useState(false);
+    
     const currentCycle = 1;
 
     useEffect(() => {
@@ -93,12 +104,37 @@ export default function GroupDetailPage() {
         }
     };
 
-    const isCreator =
-        group?.createdByName ===
-        `${user?.firstName} ${user?.lastName}`;
-    const allPaid = progress
-        ? progress.paidCount === progress.totalMembers
-        : false;
+    // NEW: Handle sending reminders
+    const handleSendReminders = async () => {
+        setSendingReminders(true);
+        setError("");
+        setSuccessMsg("");
+        try {
+            // Call your backend endpoint for sending reminders
+            const response = await fetch(`/api/groups/${id}/send-reminders`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('ajo_token')}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+            
+            if (response.ok) {
+                setSuccessMsg("Reminders sent successfully to members who haven't paid!");
+            } else {
+                const errorData = await response.json();
+                setError(errorData.message || "Failed to send reminders");
+            }
+        } catch (err) {
+            setError("Failed to send reminders");
+            console.error(err);
+        } finally {
+            setSendingReminders(false);
+        }
+    };
+
+    const isCreator = group?.createdByName === `${user?.firstName} ${user?.lastName}`;
+    const allPaid = progress ? progress.paidCount === progress.totalMembers : false;
     const myContribution = progress?.contributions?.find(
         (c) => c.userId === user?.id
     );
@@ -131,13 +167,48 @@ export default function GroupDetailPage() {
             <TopBar title={group.name} />
 
             <div className="flex-1 p-6 space-y-6 max-w-4xl">
-                <Link
-                    href="/groups"
-                    className="flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700"
-                >
-                    <ArrowLeft size={16} />
-                    Back to Groups
-                </Link>
+                {/* Navigation and Action Buttons */}
+                <div className="flex justify-between items-center">
+                    <Link
+                        href="/groups"
+                        className="flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700"
+                    >
+                        <ArrowLeft size={16} />
+                        Back to Groups
+                    </Link>
+                    
+                    {/* NEW: Action Buttons for Group Creator */}
+                    {isCreator && group.status === "ACTIVE" && (
+                        <div className="flex gap-3">
+                            <Button
+                                onClick={() => setShowInviteModal(true)}
+                                className="bg-emerald-600 hover:bg-emerald-700 text-white gap-2"
+                                size="sm"
+                            >
+                                <UserPlus size={16} />
+                                Invite Members
+                            </Button>
+                            <Button
+                                onClick={() => setShowContributionTracker(!showContributionTracker)}
+                                variant="outline"
+                                size="sm"
+                                className="gap-2"
+                            >
+                                {showContributionTracker ? "Hide" : "View"} Contribution Stats
+                            </Button>
+                            <Button
+                                onClick={handleSendReminders}
+                                disabled={sendingReminders}
+                                variant="outline"
+                                size="sm"
+                                className="gap-2"
+                            >
+                                <Bell size={16} />
+                                {sendingReminders ? "Sending..." : "Send Reminders"}
+                            </Button>
+                        </div>
+                    )}
+                </div>
 
                 {/* Error / Success */}
                 {error && (
@@ -215,6 +286,13 @@ export default function GroupDetailPage() {
                         </div>
                     </CardContent>
                 </Card>
+
+                {/* NEW: Contribution Tracker Component */}
+                {showContributionTracker && group.status === "ACTIVE" && (
+                    <div className="mt-4">
+                        <ContributionTracker groupId={Number(id)} />
+                    </div>
+                )}
 
                 {/* Cycle Progress + Pay Button (only for ACTIVE groups) */}
                 {group.status === "ACTIVE" && (
@@ -362,6 +440,20 @@ export default function GroupDetailPage() {
                     </CardContent>
                 </Card>
             </div>
+
+            {/* NEW: Invite Member Modal */}
+            {showInviteModal && (
+                <InviteMemberModal
+                    groupId={Number(id)}
+                    groupName={group.name}
+                    onClose={() => setShowInviteModal(false)}
+                    onInviteSent={() => {
+                        setShowInviteModal(false);
+                        setSuccessMsg("Invite sent successfully!");
+                        setTimeout(() => setSuccessMsg(""), 3000);
+                    }}
+                />
+            )}
         </div>
     );
 }
