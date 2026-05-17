@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { useAuthStore } from "@/store/authStore";
 import { groupsAPI, contributionsAPI, payoutsAPI, paymentsAPI } from "@/lib/api";
-import { Group, ContributionProgress } from "@/types";
+import { Group, ContributionProgress, Payout } from "@/types";
 import TopBar from "@/components/shared/TopBar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -42,7 +42,7 @@ export default function GroupDetailPage() {
     const [showInviteModal, setShowInviteModal] = useState(false);
     const [showContributionTracker, setShowContributionTracker] = useState(false);
     const [sendingReminders, setSendingReminders] = useState(false);
-
+    const [payoutExists, setPayoutExists] = useState(false);
     const currentCycle = 1;
 
     useEffect(() => {
@@ -52,11 +52,17 @@ export default function GroupDetailPage() {
                 setGroup(groupRes.data);
 
                 if (groupRes.data.status === "ACTIVE") {
-                    const progressRes = await contributionsAPI.getProgress(
-                        Number(id),
-                        currentCycle
-                    );
+                    const [progressRes, payoutRes] = await Promise.all([
+                        contributionsAPI.getProgress(Number(id), currentCycle),
+                        payoutsAPI.getByGroup(Number(id)),
+                    ]);
                     setProgress(progressRes.data);
+                    const existingPayout = payoutRes.data.find(
+                        (p: Payout) => p.cycleNumber === currentCycle
+                    );
+                    if (existingPayout) {
+                        setPayoutExists(true);
+                    }
                 }
             } catch (err) {
                 console.error("Failed to load group", err);
@@ -345,7 +351,7 @@ export default function GroupDetailPage() {
                             )}
 
                             {/* Trigger Payout (creator only, all paid) */}
-                            {isCreator && allPaid && (
+                            {isCreator && allPaid && !payoutExists && (
                                 <div className="pt-4 border-t border-gray-100">
                                     <p className="text-sm text-gray-600 mb-3">
                                         All members have paid. You can now trigger the payout.
@@ -358,6 +364,14 @@ export default function GroupDetailPage() {
                                         <Trophy size={16} />
                                         {payoutLoading ? "Triggering..." : "Trigger Payout"}
                                     </Button>
+                                </div>
+                            )}
+                            {isCreator && payoutExists && (
+                                <div className="flex items-center gap-2 text-emerald-600 text-sm font-medium pt-4 border-t border-gray-100">
+                                    <span className="w-5 h-5 rounded-full bg-emerald-100 flex items-center justify-center text-xs">
+                                        ✓
+                                    </span>
+                                    Payout for cycle {currentCycle} has been completed
                                 </div>
                             )}
                         </CardContent>
