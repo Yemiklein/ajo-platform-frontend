@@ -105,21 +105,21 @@ export default function GroupDetailPage() {
         }
     };
 
-// NEW: Handle sending reminders
-const handleSendReminders = async () => {
-  setSendingReminders(true);
-  setError("");
-  setSuccessMsg("");
-  try {
-    await groupsAPI.sendReminders(Number(id));
-    setSuccessMsg("Reminders sent successfully to members who haven't paid!");
-  } catch (err: any) {
-    setError(err.response?.data?.message || "Failed to send reminders");
-    console.error(err);
-  } finally {
-    setSendingReminders(false);
-  }
-};
+    // NEW: Handle sending reminders
+    const handleSendReminders = async () => {
+        setSendingReminders(true);
+        setError("");
+        setSuccessMsg("");
+        try {
+            await groupsAPI.sendReminders(Number(id));
+            setSuccessMsg("Reminders sent successfully to members who haven't paid!");
+        } catch (err: any) {
+            setError(err.response?.data?.message || "Failed to send reminders");
+            console.error(err);
+        } finally {
+            setSendingReminders(false);
+        }
+    };
 
     const isCreator = group?.createdByName === `${user?.firstName} ${user?.lastName}`;
     const allPaid = progress ? progress.paidCount === progress.totalMembers : false;
@@ -307,10 +307,9 @@ const handleSendReminders = async () => {
                                             {progress.paidCount} of {progress.totalMembers} paid
                                         </span>
                                         <span className="font-medium text-emerald-600">
-                                            {Math.round(
-                                                (progress.paidCount / progress.totalMembers) * 100
-                                            )}
-                                            %
+                                            {progress.totalMembers > 0
+                                                ? Math.round((progress.paidCount / progress.totalMembers) * 100)
+                                                : 0}%
                                         </span>
                                     </div>
                                     <div className="w-full bg-gray-100 rounded-full h-2.5">
@@ -442,11 +441,11 @@ const handleSendReminders = async () => {
                     groupId={Number(id)}
                     groupName={group.name}
                     onClose={() => setShowInviteModal(false)}
-                    // onInviteSent={() => {
-                    //     setShowInviteModal(false);
-                    //     setSuccessMsg("Invite sent successfully!");
-                    //     setTimeout(() => setSuccessMsg(""), 3000);
-                    // }}
+                // onInviteSent={() => {
+                //     setShowInviteModal(false);
+                //     setSuccessMsg("Invite sent successfully!");
+                //     setTimeout(() => setSuccessMsg(""), 3000);
+                // }}
                 />
             )}
         </div>
