@@ -8,17 +8,9 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { authAPI } from "@/lib/api";
 import { useAuthStore } from "@/store/authStore";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, ArrowRight } from "lucide-react";
 
 const loginSchema = z.object({
   email: z.string().email("Enter a valid email address"),
@@ -50,166 +42,170 @@ function LoginForm() {
     }
   }, [isAuthenticated, router]);
 
-useEffect(() => {
-  // Check if there's an invite code in URL (from registration redirect)
-  const inviteParam = searchParams.get("invite");
-  if (inviteParam) {
-    console.log("Found invite in URL param:", inviteParam);
-    localStorage.setItem("pendingInviteCode", inviteParam);
-  }
-  
-  // Also check if there's already a pending invite in localStorage
-  const pendingInvite = localStorage.getItem("pendingInviteCode");
-  if (pendingInvite) {
-    console.log("Found pending invite in localStorage:", pendingInvite);
-  }
-}, [searchParams]);
-
-const onSubmit = async (data: LoginForm) => {
-  setLoading(true);
-  setError("");
-  try {
-    const response = await authAPI.login(data);
-    console.log("Login response:", response.data);
-    const { token, ...userData } = response.data;
-    const user = {
-      id: userData.id,
-      firstName: userData.firstName,
-      lastName: userData.lastName,
-      email: userData.email,
-      phoneNumber: userData.phoneNumber ?? "",
-      role: userData.role ?? "USER",
-      enabled: userData.enabled ?? true,
-      createdAt: userData.createdAt ?? "",
-    };
-    setAuth(user, token);
-    
-    // Check for pending invite after successful login
-    const pendingInviteCode = localStorage.getItem("pendingInviteCode");
-    console.log("Pending invite after login:", pendingInviteCode);
-    
-    if (pendingInviteCode) {
-      console.log("Redirecting to join page with code:", pendingInviteCode);
-      localStorage.removeItem("pendingInviteCode");
-      router.push(`/join/${pendingInviteCode}`);
-    } else {
-      console.log("No pending invite, going to dashboard");
-      router.push("/dashboard");
+  useEffect(() => {
+    const inviteParam = searchParams.get("invite");
+    if (inviteParam) {
+      localStorage.setItem("pendingInviteCode", inviteParam);
     }
-    
-  } catch (err: unknown) {
-    const error = err as { response?: { data?: { message?: string } } };
-    setError(
-      error.response?.data?.message || "Invalid email or password"
-    );
-  } finally {
-    setLoading(false);
-  }
-};
+  }, [searchParams]);
+
+  const onSubmit = async (data: LoginForm) => {
+    setLoading(true);
+    setError("");
+    try {
+      const response = await authAPI.login(data);
+      const { token, ...userData } = response.data;
+      const user = {
+        id: userData.id,
+        firstName: userData.firstName,
+        lastName: userData.lastName,
+        email: userData.email,
+        phoneNumber: userData.phoneNumber ?? "",
+        role: userData.role ?? "USER",
+        enabled: userData.enabled ?? true,
+        createdAt: userData.createdAt ?? "",
+      };
+      setAuth(user, token);
+
+      const pendingInviteCode = localStorage.getItem("pendingInviteCode");
+      if (pendingInviteCode) {
+        localStorage.removeItem("pendingInviteCode");
+        router.push(`/join/${pendingInviteCode}`);
+      } else {
+        router.push("/dashboard");
+      }
+    } catch (err: unknown) {
+      const error = err as { response?: { data?: { message?: string } } };
+      setError(error.response?.data?.message || "Invalid email or password");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-emerald-100 px-4">
-      <div className="w-full max-w-md">
-        {/* Logo */}
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-emerald-600 text-white text-2xl font-bold mb-4">
-            A
+    <div className="min-h-screen flex bg-white">
+      {/* Left panel — brand */}
+      <div className="hidden lg:flex lg:w-[45%] bg-gradient-to-br from-emerald-600 via-emerald-500 to-teal-500 flex-col justify-between p-12 relative overflow-hidden">
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,_rgba(0,0,0,0.15),_transparent_70%)]" />
+        <div className="relative">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center font-bold text-white text-lg">
+              A
+            </div>
+            <span className="text-white font-semibold text-lg">Ajo Platform</span>
           </div>
-          <h1 className="text-3xl font-bold text-gray-900">Ajo Platform</h1>
-          <p className="text-gray-500 mt-1">Rotating savings, simplified</p>
         </div>
-
-        <Card className="shadow-xl border-0">
-          <CardHeader className="pb-4">
-            <CardTitle className="text-xl">Welcome back</CardTitle>
-            <CardDescription>
-              Sign in to your account to continue
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-              {/* Registration success message */}
-              {justRegistered && (
-                <div className="bg-emerald-50 border border-emerald-200 text-emerald-700 px-4 py-3 rounded-lg text-sm">
-                  Account created successfully! Sign in to continue.
-                </div>
-              )}
-
-              {/* Error */}
-              {error && (
-                <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
-                  {error}
-                </div>
-              )}
-
-              {/* Email */}
-              <div className="space-y-1">
-                <Label htmlFor="email">Email address</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="you@example.com"
-                  {...register("email")}
-                  className={errors.email ? "border-red-400" : ""}
-                />
-                {errors.email && (
-                  <p className="text-red-500 text-xs">
-                    {errors.email.message}
-                  </p>
-                )}
-              </div>
-
-              {/* Password */}
-              <div className="space-y-1">
-                  <Label htmlFor="password">Password</Label>
-  <Link
-    href="/forgot-password"
-    className="text-xs text-emerald-600 hover:underline"
-  >
-    Forgot password?
-  </Link>
-                <div className="relative">
-                  <Input
-                    id="password"
-                    type={showPassword ? "text" : "password"}
-                    placeholder="••••••••"
-                    {...register("password")}
-                    className={errors.password ? "border-red-400 pr-10" : "pr-10"}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                  >
-                    {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-                  </button>
-                </div>
-                {errors.password && (
-                  <p className="text-red-500 text-xs">{errors.password.message}</p>
-                )}
-              </div>
-
-              {/* Submit */}
-              <Button
-                type="submit"
-                className="w-full bg-emerald-600 hover:bg-emerald-700 text-white"
-                disabled={loading}
-              >
-                {loading ? "Signing in..." : "Sign In"}
-              </Button>
-            </form>
-
-            <p className="text-center text-sm text-gray-500 mt-6">
-              Don&apos;t have an account?{" "}
-              <Link
-                href="/register"
-                className="text-emerald-600 font-medium hover:underline"
-              >
-                Create one
-              </Link>
+        <div className="relative space-y-6">
+          <div>
+            <h2 className="text-4xl font-bold text-white leading-tight">
+              Savings circles,<br />done right.
+            </h2>
+            <p className="text-emerald-100/80 mt-3 text-base leading-relaxed max-w-xs">
+              Join thousands of people growing their savings together through trusted rotating pools.
             </p>
-          </CardContent>
-        </Card>
+          </div>
+          <div className="flex gap-8">
+            <div>
+              <p className="text-2xl font-bold text-white">₦2M+</p>
+              <p className="text-emerald-100/70 text-sm">Disbursed</p>
+            </div>
+            <div>
+              <p className="text-2xl font-bold text-white">500+</p>
+              <p className="text-emerald-100/70 text-sm">Active Groups</p>
+            </div>
+            <div>
+              <p className="text-2xl font-bold text-white">98%</p>
+              <p className="text-emerald-100/70 text-sm">On-time Payouts</p>
+            </div>
+          </div>
+        </div>
+        <p className="relative text-emerald-100/50 text-xs">© 2025 Ajo Platform</p>
+      </div>
+
+      {/* Right panel — form */}
+      <div className="flex-1 flex items-center justify-center px-6 py-12 lg:px-16">
+        <div className="w-full max-w-sm">
+          {/* Mobile logo */}
+          <div className="flex items-center gap-3 mb-10 lg:hidden">
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center font-bold text-white">
+              A
+            </div>
+            <span className="font-semibold text-gray-900">Ajo Platform</span>
+          </div>
+
+          <div className="mb-8">
+            <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Welcome back</h1>
+            <p className="text-gray-500 text-sm mt-1">Sign in to continue to your account</p>
+          </div>
+
+          {justRegistered && (
+            <div className="bg-emerald-50 border border-emerald-200 text-emerald-700 px-4 py-3 rounded-xl text-sm mb-5">
+              Account created! Sign in to continue.
+            </div>
+          )}
+          {error && (
+            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm mb-5">
+              {error}
+            </div>
+          )}
+
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+            <div className="space-y-1.5">
+              <Label htmlFor="email" className="text-sm font-medium text-gray-700">Email address</Label>
+              <Input
+                id="email"
+                type="email"
+                placeholder="you@example.com"
+                {...register("email")}
+                className={`h-11 rounded-xl border-gray-200 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-400 transition-all ${errors.email ? "border-red-400 bg-red-50" : ""}`}
+              />
+              {errors.email && <p className="text-red-500 text-xs">{errors.email.message}</p>}
+            </div>
+
+            <div className="space-y-1.5">
+              <div className="flex items-center justify-between">
+                <Label htmlFor="password" className="text-sm font-medium text-gray-700">Password</Label>
+                <Link href="/forgot-password" className="text-xs text-emerald-600 hover:text-emerald-700 font-medium">
+                  Forgot password?
+                </Link>
+              </div>
+              <div className="relative">
+                <Input
+                  id="password"
+                  type={showPassword ? "text" : "password"}
+                  placeholder="••••••••"
+                  {...register("password")}
+                  className={`h-11 rounded-xl border-gray-200 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-400 transition-all pr-11 ${errors.password ? "border-red-400 bg-red-50" : ""}`}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                </button>
+              </div>
+              {errors.password && <p className="text-red-500 text-xs">{errors.password.message}</p>}
+            </div>
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full h-11 rounded-xl bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white text-sm font-semibold transition-all duration-150 flex items-center justify-center gap-2 shadow-sm shadow-emerald-200 disabled:opacity-60 disabled:cursor-not-allowed mt-2"
+            >
+              {loading ? "Signing in..." : (
+                <>Sign In <ArrowRight size={15} /></>
+              )}
+            </button>
+          </form>
+
+          <p className="text-center text-sm text-gray-500 mt-8">
+            Don&apos;t have an account?{" "}
+            <Link href="/register" className="text-emerald-600 font-semibold hover:text-emerald-700">
+              Create one
+            </Link>
+          </p>
+        </div>
       </div>
     </div>
   );

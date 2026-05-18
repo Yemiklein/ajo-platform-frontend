@@ -2,13 +2,25 @@
 
 import { useEffect, useState } from "react";
 import { useAuthStore } from "@/store/authStore";
-import { groupsAPI, payoutsAPI, contributionsAPI } from "@/lib/api";
+import { groupsAPI, payoutsAPI } from "@/lib/api";
 import { Group, Payout } from "@/types";
 import TopBar from "@/components/shared/TopBar";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Users, Wallet, TrendingUp, Clock } from "lucide-react";
+import { Users, Wallet, TrendingUp, Clock, ArrowRight, Trophy } from "lucide-react";
 import Link from "next/link";
+
+const statusColors: Record<string, string> = {
+  ACTIVE: "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200",
+  PENDING: "bg-amber-50 text-amber-700 ring-1 ring-amber-200",
+  COMPLETED: "bg-blue-50 text-blue-700 ring-1 ring-blue-200",
+  CANCELLED: "bg-red-50 text-red-700 ring-1 ring-red-200",
+};
+
+const payoutStatusColors: Record<string, string> = {
+  COMPLETED: "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200",
+  PENDING: "bg-amber-50 text-amber-700 ring-1 ring-amber-200",
+  PROCESSING: "bg-blue-50 text-blue-700 ring-1 ring-blue-200",
+  FAILED: "bg-red-50 text-red-700 ring-1 ring-red-200",
+};
 
 export default function DashboardPage() {
   const { user } = useAuthStore();
@@ -39,203 +51,201 @@ export default function DashboardPage() {
   const completedPayouts = payouts.filter((p) => p.status === "COMPLETED");
   const totalReceived = completedPayouts.reduce((sum, p) => sum + p.amount, 0);
 
-  const statusColors: Record<string, string> = {
-    ACTIVE: "bg-emerald-100 text-emerald-700",
-    PENDING: "bg-yellow-100 text-yellow-700",
-    COMPLETED: "bg-blue-100 text-blue-700",
-    CANCELLED: "bg-red-100 text-red-700",
-  };
+  const stats = [
+    {
+      label: "Total Groups",
+      value: loading ? "—" : groups.length,
+      icon: Users,
+      iconBg: "bg-emerald-50",
+      iconColor: "text-emerald-600",
+      accent: "from-emerald-400 to-emerald-600",
+    },
+    {
+      label: "Active Groups",
+      value: loading ? "—" : activeGroups.length,
+      icon: TrendingUp,
+      iconBg: "bg-sky-50",
+      iconColor: "text-sky-600",
+      accent: "from-sky-400 to-sky-600",
+    },
+    {
+      label: "Pending Groups",
+      value: loading ? "—" : pendingGroups.length,
+      icon: Clock,
+      iconBg: "bg-amber-50",
+      iconColor: "text-amber-600",
+      accent: "from-amber-400 to-amber-500",
+    },
+    {
+      label: "Total Received",
+      value: loading ? "—" : `₦${totalReceived.toLocaleString()}`,
+      icon: Wallet,
+      iconBg: "bg-violet-50",
+      iconColor: "text-violet-600",
+      accent: "from-violet-400 to-violet-600",
+    },
+  ];
 
   return (
-    <div className="flex flex-col flex-1">
+    <div className="flex flex-col flex-1 min-h-0">
       <TopBar title="Dashboard" />
 
-      <div className="flex-1 p-6 space-y-6">
-        {/* Welcome */}
-        <div>
-          <h2 className="text-2xl font-bold text-gray-900">
-            Welcome back, {user?.firstName} 👋
-          </h2>
-          <p className="text-gray-500 mt-1">
-            Here&apos;s an overview of your savings activity
-          </p>
+      <div className="flex-1 p-5 lg:p-8 space-y-8 overflow-y-auto">
+
+        {/* Welcome Banner */}
+        <div className="relative rounded-2xl bg-gradient-to-r from-emerald-600 to-emerald-500 px-6 py-5 overflow-hidden">
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_rgba(255,255,255,0.12),_transparent_60%)]" />
+          <div className="relative">
+            <p className="text-emerald-100 text-sm font-medium">Good day</p>
+            <h2 className="text-white text-2xl font-bold mt-0.5 tracking-tight">
+              {user?.firstName} {user?.lastName}
+            </h2>
+            <p className="text-emerald-100/80 text-sm mt-1">
+              Here&apos;s an overview of your savings activity
+            </p>
+          </div>
         </div>
 
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-500">Total Groups</p>
-                  <p className="text-3xl font-bold text-gray-900 mt-1">
-                    {loading ? "—" : groups.length}
-                  </p>
+        {/* Stats */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          {stats.map((stat) => {
+            const Icon = stat.icon;
+            return (
+              <div
+                key={stat.label}
+                className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 relative overflow-hidden group hover:shadow-md transition-all duration-200"
+              >
+                <div className={`absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r ${stat.accent}`} />
+                <div className={`w-9 h-9 rounded-xl ${stat.iconBg} flex items-center justify-center mb-4`}>
+                  <Icon size={17} className={stat.iconColor} />
                 </div>
-                <div className="w-12 h-12 rounded-full bg-emerald-100 flex items-center justify-center">
-                  <Users className="text-emerald-600" size={22} />
-                </div>
+                <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">{stat.label}</p>
+                <p className="text-2xl font-bold text-gray-900 mt-1 tabular-nums">{stat.value}</p>
               </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-500">Active Groups</p>
-                  <p className="text-3xl font-bold text-gray-900 mt-1">
-                    {loading ? "—" : activeGroups.length}
-                  </p>
-                </div>
-                <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center">
-                  <TrendingUp className="text-blue-600" size={22} />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-500">Pending Groups</p>
-                  <p className="text-3xl font-bold text-gray-900 mt-1">
-                    {loading ? "—" : pendingGroups.length}
-                  </p>
-                </div>
-                <div className="w-12 h-12 rounded-full bg-yellow-100 flex items-center justify-center">
-                  <Clock className="text-yellow-600" size={22} />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-500">Total Received</p>
-                  <p className="text-3xl font-bold text-gray-900 mt-1">
-                    {loading ? "—" : `₦${totalReceived.toLocaleString()}`}
-                  </p>
-                </div>
-                <div className="w-12 h-12 rounded-full bg-purple-100 flex items-center justify-center">
-                  <Wallet className="text-purple-600" size={22} />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+            );
+          })}
         </div>
 
-        {/* My Groups */}
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-4">
-            <CardTitle className="text-lg">My Groups</CardTitle>
-            <Link
-              href="/groups"
-              className="text-sm text-emerald-600 hover:underline font-medium"
-            >
-              View all
-            </Link>
-          </CardHeader>
-          <CardContent>
-            {loading ? (
-              <p className="text-gray-400 text-sm">Loading...</p>
-            ) : groups.length === 0 ? (
-              <div className="text-center py-8">
-                <p className="text-gray-400 text-sm">
-                  You haven&apos;t joined any groups yet.
-                </p>
-                <Link
-                  href="/groups/create"
-                  className="text-emerald-600 text-sm font-medium hover:underline mt-2 inline-block"
-                >
-                  Create your first group →
-                </Link>
-              </div>
-            ) : (
-              <div className="space-y-3">
-                {groups.slice(0, 5).map((group) => (
-                  <Link href={`/groups/${group.id}`} key={group.id}>
-                    <div className="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer border border-gray-100">
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+          {/* My Groups */}
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-50">
+              <h3 className="font-semibold text-gray-900">My Groups</h3>
+              <Link
+                href="/groups"
+                className="flex items-center gap-1 text-xs font-medium text-emerald-600 hover:text-emerald-700 transition-colors"
+              >
+                View all <ArrowRight size={12} />
+              </Link>
+            </div>
+            <div className="p-4">
+              {loading ? (
+                <div className="space-y-3">
+                  {[1, 2, 3].map((i) => (
+                    <div key={i} className="h-14 bg-gray-50 rounded-xl animate-pulse" />
+                  ))}
+                </div>
+              ) : groups.length === 0 ? (
+                <div className="text-center py-10">
+                  <div className="w-12 h-12 rounded-2xl bg-emerald-50 flex items-center justify-center mx-auto mb-3">
+                    <Users size={20} className="text-emerald-500" />
+                  </div>
+                  <p className="text-gray-500 text-sm font-medium">No groups yet</p>
+                  <p className="text-gray-400 text-xs mt-1">You haven&apos;t joined any groups</p>
+                  <Link
+                    href="/groups/create"
+                    className="inline-flex items-center gap-1 text-emerald-600 text-xs font-medium mt-3 hover:text-emerald-700"
+                  >
+                    Create your first group <ArrowRight size={11} />
+                  </Link>
+                </div>
+              ) : (
+                <div className="space-y-1">
+                  {groups.slice(0, 5).map((group) => (
+                    <Link href={`/groups/${group.id}`} key={group.id}>
+                      <div className="flex items-center justify-between px-3 py-3 rounded-xl hover:bg-gray-50 transition-colors cursor-pointer group">
+                        <div className="flex items-center gap-3">
+                          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-400/20 to-emerald-600/20 flex items-center justify-center text-emerald-700 font-bold text-sm flex-shrink-0">
+                            {group.name[0].toUpperCase()}
+                          </div>
+                          <div>
+                            <p className="font-medium text-gray-900 text-sm leading-tight group-hover:text-emerald-700 transition-colors">
+                              {group.name}
+                            </p>
+                            <p className="text-xs text-gray-400 leading-tight mt-0.5">
+                              {group.currentMembers}/{group.maxMembers} members · ₦{group.contributionAmount.toLocaleString()}/{group.cycleType.toLowerCase()}
+                            </p>
+                          </div>
+                        </div>
+                        <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${statusColors[group.status]}`}>
+                          {group.status}
+                        </span>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Recent Payouts */}
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-50">
+              <h3 className="font-semibold text-gray-900">Recent Payouts</h3>
+              <Link
+                href="/payouts"
+                className="flex items-center gap-1 text-xs font-medium text-emerald-600 hover:text-emerald-700 transition-colors"
+              >
+                View all <ArrowRight size={12} />
+              </Link>
+            </div>
+            <div className="p-4">
+              {loading ? (
+                <div className="space-y-3">
+                  {[1, 2, 3].map((i) => (
+                    <div key={i} className="h-14 bg-gray-50 rounded-xl animate-pulse" />
+                  ))}
+                </div>
+              ) : payouts.length === 0 ? (
+                <div className="text-center py-10">
+                  <div className="w-12 h-12 rounded-2xl bg-violet-50 flex items-center justify-center mx-auto mb-3">
+                    <Trophy size={20} className="text-violet-400" />
+                  </div>
+                  <p className="text-gray-500 text-sm font-medium">No payouts yet</p>
+                  <p className="text-gray-400 text-xs mt-1">Payouts will appear here after a cycle completes</p>
+                </div>
+              ) : (
+                <div className="space-y-1">
+                  {payouts.slice(0, 5).map((payout) => (
+                    <div key={payout.id} className="flex items-center justify-between px-3 py-3 rounded-xl hover:bg-gray-50 transition-colors">
                       <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-700 font-bold text-sm">
-                          {group.name[0].toUpperCase()}
+                        <div className="w-9 h-9 rounded-xl bg-violet-50 flex items-center justify-center flex-shrink-0">
+                          <Trophy size={15} className="text-violet-500" />
                         </div>
                         <div>
-                          <p className="font-medium text-gray-900 text-sm">
-                            {group.name}
+                          <p className="font-medium text-gray-900 text-sm leading-tight">
+                            Cycle {payout.cycleNumber} Payout
                           </p>
-                          <p className="text-xs text-gray-400">
-                            {group.currentMembers}/{group.maxMembers} members
-                            · ₦{group.contributionAmount.toLocaleString()}/
-                            {group.cycleType.toLowerCase()}
+                          <p className="text-xs text-gray-400 leading-tight mt-0.5 truncate max-w-[160px]">
+                            {payout.narration || "Ajo payout disbursement"}
                           </p>
                         </div>
                       </div>
-                      <span
-                        className={`text-xs font-medium px-2.5 py-1 rounded-full ${statusColors[group.status]}`}
-                      >
-                        {group.status}
-                      </span>
+                      <div className="text-right flex-shrink-0">
+                        <p className="font-bold text-emerald-600 text-sm tabular-nums">
+                          ₦{payout.amount.toLocaleString()}
+                        </p>
+                        <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${payoutStatusColors[payout.status]}`}>
+                          {payout.status}
+                        </span>
+                      </div>
                     </div>
-                  </Link>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Recent Payouts */}
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-4">
-            <CardTitle className="text-lg">Recent Payouts</CardTitle>
-            <Link
-              href="/payouts"
-              className="text-sm text-emerald-600 hover:underline font-medium"
-            >
-              View all
-            </Link>
-          </CardHeader>
-          <CardContent>
-            {loading ? (
-              <p className="text-gray-400 text-sm">Loading...</p>
-            ) : payouts.length === 0 ? (
-              <p className="text-gray-400 text-sm text-center py-8">
-                No payouts yet
-              </p>
-            ) : (
-              <div className="space-y-3">
-                {payouts.slice(0, 5).map((payout) => (
-                  <div
-                    key={payout.id}
-                    className="flex items-center justify-between p-3 rounded-lg border border-gray-100"
-                  >
-                    <div>
-                      <p className="font-medium text-gray-900 text-sm">
-                        Cycle {payout.cycleNumber} Payout
-                      </p>
-                      <p className="text-xs text-gray-400">
-                        {payout.narration}
-                      </p>
-                    </div>
-                    <div className="text-right">
-                      <p className="font-bold text-emerald-600 text-sm">
-                        ₦{payout.amount.toLocaleString()}
-                      </p>
-                      <Badge
-                        className={`text-xs ${statusColors[payout.status]}`}
-                      >
-                        {payout.status}
-                      </Badge>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );

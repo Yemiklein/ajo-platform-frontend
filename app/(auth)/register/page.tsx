@@ -7,11 +7,9 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { authAPI } from "@/lib/api";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, ArrowRight } from "lucide-react";
 
 const registerSchema = z.object({
   firstName: z.string().min(2, "First name is required"),
@@ -45,182 +43,154 @@ export default function RegisterPage() {
     resolver: zodResolver(registerSchema),
   });
 
-const onSubmit = async (data: RegisterForm) => {
-  setLoading(true);
-  setError("");
-  try {
-    const { confirmPassword, ...payload } = data;
-    void confirmPassword;
-    await authAPI.register(payload);
-    
-    // Check for pending invite
-    const pendingInviteCode = localStorage.getItem("pendingInviteCode");
-    if (pendingInviteCode) {
-      localStorage.removeItem("pendingInviteCode");
-      // Pass invite code to login page via URL parameter
-      router.push(`/login?registered=true&invite=${pendingInviteCode}`);
-    } else {
-      router.push("/login?registered=true");
+  const onSubmit = async (data: RegisterForm) => {
+    setLoading(true);
+    setError("");
+    try {
+      const { confirmPassword, ...payload } = data;
+      void confirmPassword;
+      await authAPI.register(payload);
+
+      const pendingInviteCode = localStorage.getItem("pendingInviteCode");
+      if (pendingInviteCode) {
+        localStorage.removeItem("pendingInviteCode");
+        router.push(`/login?registered=true&invite=${pendingInviteCode}`);
+      } else {
+        router.push("/login?registered=true");
+      }
+    } catch (err: unknown) {
+      const error = err as { response?: { data?: { message?: string } } };
+      setError(error.response?.data?.message || "Registration failed. Try again.");
+    } finally {
+      setLoading(false);
     }
-    
-  } catch (err: unknown) {
-    const error = err as { response?: { data?: { message?: string } } };
-    setError(error.response?.data?.message || "Registration failed. Try again.");
-  } finally {
-    setLoading(false);
-  }
-};
+  };
+
+  const inputClass = (hasError?: boolean) =>
+    `h-11 rounded-xl border-gray-200 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-400 transition-all text-sm ${hasError ? "border-red-400 bg-red-50" : ""}`;
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-emerald-100 px-4 py-12">
-      <div className="w-full max-w-md">
-        {/* Logo / Brand */}
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-emerald-600 text-white text-2xl font-bold mb-4">
-            A
+    <div className="min-h-screen flex bg-white">
+      {/* Left panel */}
+      <div className="hidden lg:flex lg:w-[45%] bg-gradient-to-br from-emerald-600 via-emerald-500 to-teal-500 flex-col justify-between p-12 relative overflow-hidden">
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,_rgba(0,0,0,0.15),_transparent_70%)]" />
+        <div className="relative">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center font-bold text-white text-lg">
+              A
+            </div>
+            <span className="text-white font-semibold text-lg">Ajo Platform</span>
           </div>
-          <h1 className="text-3xl font-bold text-gray-900">Ajo Platform</h1>
-          <p className="text-gray-500 mt-1">Join a savings circle today</p>
         </div>
-
-        <Card className="shadow-xl border-0">
-          <CardHeader className="pb-4">
-            <CardTitle className="text-xl">Create your account</CardTitle>
-            <CardDescription>Fill in your details to get started</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-              {/* Error Message */}
-              {error && (
-                <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
-                  {error}
-                </div>
-              )}
-
-              {/* Name Row */}
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1">
-                  <Label htmlFor="firstName">First name</Label>
-                  <Input
-                    id="firstName"
-                    placeholder="Soyinka"
-                    {...register("firstName")}
-                    className={errors.firstName ? "border-red-400" : ""}
-                  />
-                  {errors.firstName && (
-                    <p className="text-red-500 text-xs">{errors.firstName.message}</p>
-                  )}
-                </div>
-                <div className="space-y-1">
-                  <Label htmlFor="lastName">Last name</Label>
-                  <Input
-                    id="lastName"
-                    placeholder="Wole"
-                    {...register("lastName")}
-                    className={errors.lastName ? "border-red-400" : ""}
-                  />
-                  {errors.lastName && (
-                    <p className="text-red-500 text-xs">{errors.lastName.message}</p>
-                  )}
-                </div>
-              </div>
-
-              {/* Email */}
-              <div className="space-y-1">
-                <Label htmlFor="email">Email address</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="you@example.com"
-                  {...register("email")}
-                  className={errors.email ? "border-red-400" : ""}
-                />
-                {errors.email && (
-                  <p className="text-red-500 text-xs">{errors.email.message}</p>
-                )}
-              </div>
-
-              {/* Phone */}
-              <div className="space-y-1">
-                <Label htmlFor="phoneNumber">Phone number</Label>
-                <Input
-                  id="phoneNumber"
-                  type="tel"
-                  placeholder="08012345678"
-                  {...register("phoneNumber")}
-                  className={errors.phoneNumber ? "border-red-400" : ""}
-                />
-                {errors.phoneNumber && (
-                  <p className="text-red-500 text-xs">{errors.phoneNumber.message}</p>
-                )}
-              </div>
-
-              {/* Password */}
-              <div className="space-y-1">
-                <Label htmlFor="password">Password</Label>
-                <div className="relative">
-                  <Input
-                    id="password"
-                    type={showPassword ? "text" : "password"}
-                    placeholder="••••••••"
-                    {...register("password")}
-                    className={errors.password ? "border-red-400 pr-10" : "pr-10"}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                  >
-                    {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-                  </button>
-                </div>
-                {errors.password && (
-                  <p className="text-red-500 text-xs">{errors.password.message}</p>
-                )}
-              </div>
-
-              {/* Confirm Password */}
-              <div className="space-y-1">
-                <Label htmlFor="confirmPassword">Confirm password</Label>
-                <div className="relative">
-                  <Input
-                    id="confirmPassword"
-                    type={showConfirm ? "text" : "password"}
-                    placeholder="••••••••"
-                    {...register("confirmPassword")}
-                    className={errors.confirmPassword ? "border-red-400 pr-10" : "pr-10"}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowConfirm(!showConfirm)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                  >
-                    {showConfirm ? <EyeOff size={16} /> : <Eye size={16} />}
-                  </button>
-                </div>
-                {errors.confirmPassword && (
-                  <p className="text-red-500 text-xs">{errors.confirmPassword.message}</p>
-                )}
-              </div>
-
-              {/* Submit */}
-              <Button
-                type="submit"
-                className="w-full bg-emerald-600 hover:bg-emerald-700 text-white"
-                disabled={loading}
-              >
-                {loading ? "Creating account..." : "Create Account"}
-              </Button>
-            </form>
-
-            <p className="text-center text-sm text-gray-500 mt-6">
-              Already have an account?{" "}
-              <Link href="/login" className="text-emerald-600 font-medium hover:underline">
-                Sign in
-              </Link>
+        <div className="relative space-y-6">
+          <div>
+            <h2 className="text-4xl font-bold text-white leading-tight">
+              Start saving<br />with your circle.
+            </h2>
+            <p className="text-emerald-100/80 mt-3 text-base leading-relaxed max-w-xs">
+              Create your account in seconds and start building wealth together with people you trust.
             </p>
-          </CardContent>
-        </Card>
+          </div>
+          <ul className="space-y-3">
+            {["Create or join savings groups", "Track contributions in real time", "Receive payouts automatically"].map((item) => (
+              <li key={item} className="flex items-center gap-3 text-white/90 text-sm">
+                <span className="w-5 h-5 rounded-full bg-white/20 flex items-center justify-center flex-shrink-0 text-xs">✓</span>
+                {item}
+              </li>
+            ))}
+          </ul>
+        </div>
+        <p className="relative text-emerald-100/50 text-xs">© 2025 Ajo Platform</p>
+      </div>
+
+      {/* Right panel */}
+      <div className="flex-1 flex items-center justify-center px-6 py-12 lg:px-16 overflow-y-auto">
+        <div className="w-full max-w-sm">
+          {/* Mobile logo */}
+          <div className="flex items-center gap-3 mb-8 lg:hidden">
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center font-bold text-white">
+              A
+            </div>
+            <span className="font-semibold text-gray-900">Ajo Platform</span>
+          </div>
+
+          <div className="mb-7">
+            <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Create your account</h1>
+            <p className="text-gray-500 text-sm mt-1">Fill in your details to get started</p>
+          </div>
+
+          {error && (
+            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm mb-5">
+              {error}
+            </div>
+          )}
+
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label htmlFor="firstName" className="text-sm font-medium text-gray-700">First name</Label>
+                <Input id="firstName" placeholder="Soyinka" {...register("firstName")} className={inputClass(!!errors.firstName)} />
+                {errors.firstName && <p className="text-red-500 text-xs">{errors.firstName.message}</p>}
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="lastName" className="text-sm font-medium text-gray-700">Last name</Label>
+                <Input id="lastName" placeholder="Wole" {...register("lastName")} className={inputClass(!!errors.lastName)} />
+                {errors.lastName && <p className="text-red-500 text-xs">{errors.lastName.message}</p>}
+              </div>
+            </div>
+
+            <div className="space-y-1.5">
+              <Label htmlFor="email" className="text-sm font-medium text-gray-700">Email address</Label>
+              <Input id="email" type="email" placeholder="you@example.com" {...register("email")} className={inputClass(!!errors.email)} />
+              {errors.email && <p className="text-red-500 text-xs">{errors.email.message}</p>}
+            </div>
+
+            <div className="space-y-1.5">
+              <Label htmlFor="phoneNumber" className="text-sm font-medium text-gray-700">Phone number</Label>
+              <Input id="phoneNumber" type="tel" placeholder="08012345678" {...register("phoneNumber")} className={inputClass(!!errors.phoneNumber)} />
+              {errors.phoneNumber && <p className="text-red-500 text-xs">{errors.phoneNumber.message}</p>}
+            </div>
+
+            <div className="space-y-1.5">
+              <Label htmlFor="password" className="text-sm font-medium text-gray-700">Password</Label>
+              <div className="relative">
+                <Input id="password" type={showPassword ? "text" : "password"} placeholder="••••••••" {...register("password")} className={inputClass(!!errors.password) + " pr-11"} />
+                <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors">
+                  {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                </button>
+              </div>
+              {errors.password && <p className="text-red-500 text-xs">{errors.password.message}</p>}
+            </div>
+
+            <div className="space-y-1.5">
+              <Label htmlFor="confirmPassword" className="text-sm font-medium text-gray-700">Confirm password</Label>
+              <div className="relative">
+                <Input id="confirmPassword" type={showConfirm ? "text" : "password"} placeholder="••••••••" {...register("confirmPassword")} className={inputClass(!!errors.confirmPassword) + " pr-11"} />
+                <button type="button" onClick={() => setShowConfirm(!showConfirm)} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors">
+                  {showConfirm ? <EyeOff size={16} /> : <Eye size={16} />}
+                </button>
+              </div>
+              {errors.confirmPassword && <p className="text-red-500 text-xs">{errors.confirmPassword.message}</p>}
+            </div>
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full h-11 rounded-xl bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white text-sm font-semibold transition-all duration-150 flex items-center justify-center gap-2 shadow-sm shadow-emerald-200 disabled:opacity-60 disabled:cursor-not-allowed mt-1"
+            >
+              {loading ? "Creating account..." : (
+                <>Create Account <ArrowRight size={15} /></>
+              )}
+            </button>
+          </form>
+
+          <p className="text-center text-sm text-gray-500 mt-7">
+            Already have an account?{" "}
+            <Link href="/login" className="text-emerald-600 font-semibold hover:text-emerald-700">
+              Sign in
+            </Link>
+          </p>
+        </div>
       </div>
     </div>
   );

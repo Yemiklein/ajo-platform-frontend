@@ -4,14 +4,13 @@ import { useEffect, useState } from "react";
 import { payoutsAPI } from "@/lib/api";
 import { Payout } from "@/types";
 import TopBar from "@/components/shared/TopBar";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Wallet, Trophy } from "lucide-react";
+import { Wallet, Trophy, CheckCircle } from "lucide-react";
 
 const statusColors: Record<string, string> = {
-  COMPLETED: "bg-emerald-100 text-emerald-700",
-  PENDING: "bg-yellow-100 text-yellow-700",
-  PROCESSING: "bg-blue-100 text-blue-700",
-  FAILED: "bg-red-100 text-red-700",
+  COMPLETED: "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200",
+  PENDING: "bg-amber-50 text-amber-700 ring-1 ring-amber-200",
+  PROCESSING: "bg-blue-50 text-blue-700 ring-1 ring-blue-200",
+  FAILED: "bg-red-50 text-red-700 ring-1 ring-red-200",
 };
 
 export default function PayoutsPage() {
@@ -36,121 +35,117 @@ export default function PayoutsPage() {
     .filter((p) => p.status === "COMPLETED")
     .reduce((sum, p) => sum + p.amount, 0);
 
+  const completed = payouts.filter((p) => p.status === "COMPLETED").length;
+
+  const stats = [
+    {
+      label: "Total Received",
+      value: loading ? "—" : `₦${totalReceived.toLocaleString()}`,
+      icon: Wallet,
+      accent: "from-emerald-400 to-emerald-600",
+      iconBg: "bg-emerald-50",
+      iconColor: "text-emerald-600",
+      big: true,
+    },
+    {
+      label: "Total Payouts",
+      value: loading ? "—" : payouts.length,
+      icon: Trophy,
+      accent: "from-violet-400 to-violet-600",
+      iconBg: "bg-violet-50",
+      iconColor: "text-violet-600",
+    },
+    {
+      label: "Completed",
+      value: loading ? "—" : completed,
+      icon: CheckCircle,
+      accent: "from-sky-400 to-sky-600",
+      iconBg: "bg-sky-50",
+      iconColor: "text-sky-600",
+    },
+  ];
+
   return (
-    <div className="flex flex-col flex-1">
+    <div className="flex flex-col flex-1 min-h-0">
       <TopBar title="My Payouts" />
 
-      <div className="flex-1 p-6 space-y-6">
-        {/* Summary Card */}
+      <div className="flex-1 p-5 lg:p-8 space-y-6 overflow-y-auto">
+
+        {/* Stats */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-500">Total Received</p>
-                  <p className="text-3xl font-bold text-emerald-600 mt-1">
-                    {loading ? "—" : `₦${totalReceived.toLocaleString()}`}
-                  </p>
+          {stats.map((stat) => {
+            const Icon = stat.icon;
+            return (
+              <div
+                key={stat.label}
+                className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 relative overflow-hidden"
+              >
+                <div className={`absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r ${stat.accent}`} />
+                <div className={`w-9 h-9 rounded-xl ${stat.iconBg} flex items-center justify-center mb-4`}>
+                  <Icon size={17} className={stat.iconColor} />
                 </div>
-                <div className="w-12 h-12 rounded-full bg-emerald-100 flex items-center justify-center">
-                  <Wallet className="text-emerald-600" size={22} />
-                </div>
+                <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">{stat.label}</p>
+                <p className={`font-bold text-gray-900 mt-1 tabular-nums ${stat.big ? "text-2xl" : "text-2xl"}`}>
+                  {stat.value}
+                </p>
               </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-500">Total Payouts</p>
-                  <p className="text-3xl font-bold text-gray-900 mt-1">
-                    {loading ? "—" : payouts.length}
-                  </p>
-                </div>
-                <div className="w-12 h-12 rounded-full bg-purple-100 flex items-center justify-center">
-                  <Trophy className="text-purple-600" size={22} />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-500">Completed</p>
-                  <p className="text-3xl font-bold text-gray-900 mt-1">
-                    {loading
-                      ? "—"
-                      : payouts.filter((p) => p.status === "COMPLETED").length}
-                  </p>
-                </div>
-                <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center">
-                  <Trophy className="text-blue-600" size={22} />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+            );
+          })}
         </div>
 
         {/* Payouts List */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">Payout History</CardTitle>
-          </CardHeader>
-          <CardContent>
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+          <div className="px-6 py-4 border-b border-gray-50">
+            <h3 className="font-semibold text-gray-900">Payout History</h3>
+          </div>
+          <div className="p-4">
             {loading ? (
-              <p className="text-gray-400 text-sm">Loading payouts...</p>
+              <div className="space-y-3">
+                {[1, 2, 3].map((i) => (
+                  <div key={i} className="h-16 bg-gray-50 rounded-xl animate-pulse" />
+                ))}
+              </div>
             ) : payouts.length === 0 ? (
               <div className="text-center py-16">
-                <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center mx-auto mb-4">
-                  <Wallet className="text-gray-400" size={28} />
+                <div className="w-14 h-14 rounded-2xl bg-violet-50 flex items-center justify-center mx-auto mb-4">
+                  <Wallet className="text-violet-400" size={24} />
                 </div>
-                <p className="text-gray-500 font-medium">No payouts yet</p>
+                <p className="text-gray-700 font-semibold">No payouts yet</p>
                 <p className="text-gray-400 text-sm mt-1">
                   Payouts will appear here once your cycle is complete
                 </p>
               </div>
             ) : (
-              <div className="space-y-3">
+              <div className="space-y-1">
                 {payouts.map((payout) => (
                   <div
                     key={payout.id}
-                    className="flex items-center justify-between p-4 rounded-lg border border-gray-100 hover:bg-gray-50 transition-colors"
+                    className="flex items-center justify-between px-3 py-3.5 rounded-xl hover:bg-gray-50 transition-colors"
                   >
-                    <div className="flex items-center gap-4">
-                      <div className="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center">
-                        <Trophy className="text-emerald-600" size={18} />
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center flex-shrink-0">
+                        <Trophy size={16} className="text-emerald-600" />
                       </div>
                       <div>
-                        <p className="font-medium text-gray-900">
+                        <p className="font-semibold text-gray-900 text-sm">
                           Cycle {payout.cycleNumber} Payout
                         </p>
                         <p className="text-xs text-gray-400 mt-0.5">
-                          {payout.narration || "Ajo payout disbursement"}
-                        </p>
-                        <p className="text-xs text-gray-400">
                           {payout.disbursedAt
-                            ? new Date(payout.disbursedAt).toLocaleDateString(
-                                "en-NG",
-                                {
-                                  day: "numeric",
-                                  month: "short",
-                                  year: "numeric",
-                                }
-                              )
-                            : "Pending disbursement"}
+                            ? new Date(payout.disbursedAt).toLocaleDateString("en-NG", {
+                                day: "numeric",
+                                month: "short",
+                                year: "numeric",
+                              })
+                            : payout.narration || "Pending disbursement"}
                         </p>
                       </div>
                     </div>
-                    <div className="text-right">
-                      <p className="font-bold text-emerald-600 text-lg">
+                    <div className="text-right flex-shrink-0">
+                      <p className="font-bold text-emerald-600 text-base tabular-nums">
                         ₦{payout.amount.toLocaleString()}
                       </p>
-                      <span
-                        className={`text-xs font-medium px-2.5 py-1 rounded-full ${statusColors[payout.status]}`}
-                      >
+                      <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${statusColors[payout.status]}`}>
                         {payout.status}
                       </span>
                     </div>
@@ -158,8 +153,8 @@ export default function PayoutsPage() {
                 ))}
               </div>
             )}
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </div>
     </div>
   );

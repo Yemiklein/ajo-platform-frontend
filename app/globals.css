@@ -123,8 +123,19 @@
   }
   body {
     @apply bg-background text-foreground;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
   html {
     @apply font-sans;
   }
 }
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: oklch(0.82 0 0); border-radius: 99px; }
+::-webkit-scrollbar-thumb:hover { background: oklch(0.65 0 0); }
+
+/* Selection */
+::selection { background: rgb(167 243 208 / 0.5); }

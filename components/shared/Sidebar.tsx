@@ -44,36 +44,45 @@ export default function Sidebar() {
     setMobileOpen(false);
   };
 
+  const initials = `${user?.firstName?.[0] ?? ""}${user?.lastName?.[0] ?? ""}`.toUpperCase();
+
   const SidebarContent = () => (
     <div className="flex flex-col h-full">
       {/* Brand */}
-      <div className="px-6 py-6 border-b border-gray-700">
+      <div className="px-5 py-5 border-b border-white/5">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-emerald-500 flex items-center justify-center font-bold text-lg flex-shrink-0">
+          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center font-bold text-base text-white shadow-lg shadow-emerald-900/40 flex-shrink-0">
             A
           </div>
           <div>
-            <p className="font-bold text-white">Ajo Platform</p>
-            <p className="text-xs text-gray-400">Savings Circle</p>
+            <p className="font-semibold text-white text-sm tracking-wide">Ajo Platform</p>
+            <p className="text-[11px] text-zinc-500 leading-tight">Savings Circle</p>
           </div>
         </div>
       </div>
 
       {/* User Info */}
-      <div className="px-6 py-4 border-b border-gray-700">
-        <p className="text-sm font-medium text-white truncate">
-          {user?.firstName} {user?.lastName}
-        </p>
-        <p className="text-xs text-gray-400 truncate">{user?.email}</p>
-        {user?.role === "ADMIN" && (
-          <span className="inline-block mt-1 text-xs bg-purple-600 text-white px-2 py-0.5 rounded-full">
-            Admin
-          </span>
-        )}
+      <div className="px-5 py-4 border-b border-white/5">
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-500/30 to-emerald-700/30 border border-emerald-500/20 flex items-center justify-center text-emerald-400 font-semibold text-xs flex-shrink-0">
+            {initials}
+          </div>
+          <div className="min-w-0">
+            <p className="text-sm font-medium text-zinc-200 truncate leading-tight">
+              {user?.firstName} {user?.lastName}
+            </p>
+            <p className="text-[11px] text-zinc-500 truncate leading-tight">{user?.email}</p>
+          </div>
+          {user?.role === "ADMIN" && (
+            <span className="ml-auto flex-shrink-0 text-[10px] bg-purple-500/20 text-purple-400 border border-purple-500/20 px-1.5 py-0.5 rounded-md font-medium">
+              Admin
+            </span>
+          )}
+        </div>
       </div>
 
       {/* Nav Links */}
-      <nav className="flex-1 px-4 py-4 space-y-1 overflow-y-auto">
+      <nav className="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto">
         {navItems.map((item) => {
           const Icon = item.icon;
           const isActive = pathname === item.href;
@@ -83,23 +92,26 @@ export default function Sidebar() {
               href={item.href}
               onClick={handleNavClick}
               className={cn(
-                "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
+                "flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150",
                 isActive
-                  ? "bg-emerald-600 text-white"
-                  : "text-gray-400 hover:bg-gray-800 hover:text-white"
+                  ? "bg-emerald-500/15 text-emerald-400 shadow-sm"
+                  : "text-zinc-500 hover:bg-white/5 hover:text-zinc-300"
               )}
             >
-              <Icon size={18} />
+              <Icon size={17} className={isActive ? "text-emerald-400" : ""} />
               {item.label}
+              {isActive && (
+                <span className="ml-auto w-1.5 h-1.5 rounded-full bg-emerald-400" />
+              )}
             </Link>
           );
         })}
 
         {user?.role === "ADMIN" && (
           <>
-            <div className="pt-4 pb-2">
-              <p className="text-xs text-gray-500 uppercase tracking-wider px-3">
-                Admin
+            <div className="pt-5 pb-2 px-3">
+              <p className="text-[10px] text-zinc-600 uppercase tracking-widest font-semibold">
+                Administration
               </p>
             </div>
             {adminItems.map((item) => {
@@ -111,13 +123,13 @@ export default function Sidebar() {
                   href={item.href}
                   onClick={handleNavClick}
                   className={cn(
-                    "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
+                    "flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150",
                     isActive
-                      ? "bg-purple-600 text-white"
-                      : "text-gray-400 hover:bg-gray-800 hover:text-white"
+                      ? "bg-purple-500/15 text-purple-400"
+                      : "text-zinc-500 hover:bg-white/5 hover:text-zinc-300"
                   )}
                 >
-                  <Icon size={18} />
+                  <Icon size={17} />
                   {item.label}
                 </Link>
               );
@@ -127,12 +139,12 @@ export default function Sidebar() {
       </nav>
 
       {/* Logout */}
-      <div className="px-4 py-4 border-t border-gray-700">
+      <div className="px-3 py-4 border-t border-white/5">
         <button
           onClick={handleLogout}
-          className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-400 hover:bg-gray-800 hover:text-white transition-colors w-full"
+          className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-zinc-500 hover:bg-rose-500/10 hover:text-rose-400 transition-all duration-150 w-full group"
         >
-          <LogOut size={18} />
+          <LogOut size={17} className="group-hover:text-rose-400 transition-colors" />
           Sign Out
         </button>
       </div>
@@ -142,25 +154,25 @@ export default function Sidebar() {
   return (
     <>
       {/* Mobile Top Bar */}
-      <div className="lg:hidden fixed top-0 left-0 right-0 z-40 bg-gray-900 text-white flex items-center justify-between px-4 py-3 border-b border-gray-700">
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-full bg-emerald-500 flex items-center justify-center font-bold text-sm">
+      <div className="lg:hidden fixed top-0 left-0 right-0 z-40 bg-zinc-950 text-white flex items-center justify-between px-4 py-3 border-b border-white/5">
+        <div className="flex items-center gap-2.5">
+          <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center font-bold text-sm text-white">
             A
           </div>
-          <span className="font-bold text-white">Ajo Platform</span>
+          <span className="font-semibold text-white text-sm">Ajo Platform</span>
         </div>
         <button
           onClick={() => setMobileOpen(!mobileOpen)}
-          className="p-2 text-gray-400 hover:text-white"
+          className="p-2 text-zinc-400 hover:text-white transition-colors"
         >
-          {mobileOpen ? <X size={22} /> : <Menu size={22} />}
+          {mobileOpen ? <X size={20} /> : <Menu size={20} />}
         </button>
       </div>
 
       {/* Mobile Overlay */}
       {mobileOpen && (
         <div
-          className="lg:hidden fixed inset-0 z-30 bg-black/50"
+          className="lg:hidden fixed inset-0 z-30 bg-black/60 backdrop-blur-sm"
           onClick={() => setMobileOpen(false)}
         />
       )}
@@ -168,7 +180,7 @@ export default function Sidebar() {
       {/* Mobile Drawer */}
       <div
         className={cn(
-          "lg:hidden fixed top-0 left-0 z-40 h-full w-72 bg-gray-900 text-white transform transition-transform duration-300",
+          "lg:hidden fixed top-0 left-0 z-40 h-full w-72 bg-zinc-950 text-white transform transition-transform duration-300 ease-in-out",
           mobileOpen ? "translate-x-0" : "-translate-x-full"
         )}
       >
@@ -178,7 +190,7 @@ export default function Sidebar() {
       </div>
 
       {/* Desktop Sidebar */}
-      <aside className="hidden lg:flex w-64 h-screen sticky top-0 bg-gray-900 text-white flex-col flex-shrink-0">
+      <aside className="hidden lg:flex w-64 h-screen sticky top-0 bg-zinc-950 text-white flex-col flex-shrink-0">
         <SidebarContent />
       </aside>
     </>
