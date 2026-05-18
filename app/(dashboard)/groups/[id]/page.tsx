@@ -146,7 +146,9 @@ export default function GroupDetailPage() {
         }
     };
 
-    const isCreator = group?.createdByName === `${user?.firstName} ${user?.lastName}`;
+    const isCreator = group?.createdBy
+        ? group.createdBy.id === user?.id
+        : group?.createdByName === `${user?.firstName} ${user?.lastName}`;
     const allPaid = progress ? progress.paidCount === progress.totalMembers : false;
     const myContribution = progress?.contributions?.find(
         (c) => c.userId === user?.id

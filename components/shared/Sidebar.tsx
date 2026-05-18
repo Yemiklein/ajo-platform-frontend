@@ -45,7 +45,7 @@ export default function Sidebar() {
   };
 
   const SidebarContent = () => (
-    <div className="flex flex-col h-screen">
+    <div className="flex flex-col h-full">
       {/* Brand */}
       <div className="px-6 py-6 border-b border-gray-700">
         <div className="flex items-center gap-3">
@@ -178,7 +178,7 @@ export default function Sidebar() {
       </div>
 
       {/* Desktop Sidebar */}
-      <aside className="hidden lg:flex w-64 min-h-screen bg-gray-900 text-white flex-col flex-shrink-0">
+      <aside className="hidden lg:flex w-64 h-screen sticky top-0 bg-gray-900 text-white flex-col flex-shrink-0">
         <SidebarContent />
       </aside>
     </>
