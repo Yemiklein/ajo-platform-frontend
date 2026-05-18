@@ -6,35 +6,56 @@ import { Group } from "@/types";
 import TopBar from "@/components/shared/TopBar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Users, Plus, Search, ArrowRight, Copy, Check } from "lucide-react";
+import { Users, Plus, Search, ArrowRight, Copy, Check, Share2 } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
 
 function CopyButton({ id }: { id: number }) {
   const [copied, setCopied] = useState(false);
-  const handleCopy = (e: React.MouseEvent) => {
+  const [linkCopied, setLinkCopied] = useState(false);
+
+  const handleCopyId = (e: React.MouseEvent) => {
     e.preventDefault();
     navigator.clipboard.writeText(String(id));
     setCopied(true);
     toast.success(`Group ID ${id} copied!`);
     setTimeout(() => setCopied(false), 2000);
   };
+
+  const handleCopyLink = (e: React.MouseEvent) => {
+    e.preventDefault();
+    const link = `${window.location.origin}/join?id=${id}`;
+    navigator.clipboard.writeText(link);
+    setLinkCopied(true);
+    toast.success("Invite link copied! Share it with anyone.");
+    setTimeout(() => setLinkCopied(false), 2000);
+  };
+
   return (
-    <button
-      onClick={handleCopy}
-      className="flex items-center gap-1.5 text-xs font-bold font-mono bg-emerald-50 text-emerald-700 border border-emerald-200 px-2 py-0.5 rounded-lg flex-shrink-0 tracking-wide hover:bg-emerald-100 transition-colors"
-    >
-      {copied ? <Check size={11} /> : <Copy size={11} />}
-      ID: {id}
-    </button>
+    <div className="flex items-center gap-1.5 flex-shrink-0">
+      <button
+        onClick={handleCopyId}
+        className="flex items-center gap-1.5 text-xs font-bold font-mono bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/20 px-2 py-0.5 rounded-lg tracking-wide hover:bg-emerald-100 dark:hover:bg-emerald-500/20 transition-colors"
+      >
+        {copied ? <Check size={11} /> : <Copy size={11} />}
+        ID: {id}
+      </button>
+      <button
+        onClick={handleCopyLink}
+        className="flex items-center gap-1 text-xs bg-gray-50 dark:bg-zinc-700 text-gray-500 dark:text-zinc-400 border border-gray-200 dark:border-zinc-600 px-2 py-0.5 rounded-lg hover:bg-gray-100 dark:hover:bg-zinc-600 transition-colors"
+        title="Copy invite link"
+      >
+        {linkCopied ? <Check size={11} /> : <Share2 size={11} />}
+      </button>
+    </div>
   );
 }
 
 const statusColors: Record<string, string> = {
-  ACTIVE: "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200",
-  PENDING: "bg-amber-50 text-amber-700 ring-1 ring-amber-200",
-  COMPLETED: "bg-blue-50 text-blue-700 ring-1 ring-blue-200",
-  CANCELLED: "bg-red-50 text-red-700 ring-1 ring-red-200",
+  ACTIVE: "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-400 dark:ring-emerald-500/20",
+  PENDING: "bg-amber-50 text-amber-700 ring-1 ring-amber-200 dark:bg-amber-500/10 dark:text-amber-400 dark:ring-amber-500/20",
+  COMPLETED: "bg-blue-50 text-blue-700 ring-1 ring-blue-200 dark:bg-blue-500/10 dark:text-blue-400 dark:ring-blue-500/20",
+  CANCELLED: "bg-red-50 text-red-700 ring-1 ring-red-200 dark:bg-red-500/10 dark:text-red-400 dark:ring-red-500/20",
 };
 
 export default function GroupsPage() {
@@ -88,10 +109,10 @@ export default function GroupsPage() {
         {/* Header Actions */}
         <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between">
           <div className="relative w-full sm:max-w-xs">
-            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" size={15} />
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 dark:text-zinc-500" size={15} />
             <Input
               placeholder="Search groups..."
-              className="pl-10 bg-white border-gray-200 rounded-xl h-10 text-sm focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-400"
+              className="pl-10 bg-white dark:bg-zinc-800 border-gray-200 dark:border-zinc-700 rounded-xl h-10 text-sm focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-400 dark:text-white dark:placeholder-zinc-500"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
@@ -105,21 +126,21 @@ export default function GroupsPage() {
         </div>
 
         {/* Join Group */}
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
-          <p className="text-sm font-semibold text-gray-800 mb-1">Join an existing group</p>
-          <p className="text-xs text-gray-400 mb-4">Enter a group ID shared by the group creator</p>
+        <div className="bg-white dark:bg-zinc-800 rounded-2xl border border-gray-100 dark:border-zinc-700 shadow-sm p-5">
+          <p className="text-sm font-semibold text-gray-800 dark:text-white mb-1">Join an existing group</p>
+          <p className="text-xs text-gray-400 dark:text-zinc-500 mb-4">Enter a group ID shared by the group creator</p>
           <div className="flex gap-3">
             <Input
               placeholder="Enter group ID"
               value={joinId}
               onChange={(e) => setJoinId(e.target.value)}
-              className="max-w-[180px] bg-gray-50 border-gray-200 rounded-xl h-10 text-sm"
+              className="max-w-[180px] bg-gray-50 dark:bg-zinc-700 border-gray-200 dark:border-zinc-600 rounded-xl h-10 text-sm dark:text-white dark:placeholder-zinc-500"
               type="number"
             />
             <Button
               onClick={handleJoin}
               disabled={joinLoading || !joinId}
-              className="border border-emerald-500 text-emerald-600 bg-emerald-50 hover:bg-emerald-100 rounded-xl h-10 px-5 text-sm font-medium transition-all"
+              className="border border-emerald-500 text-emerald-600 bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/30 dark:hover:bg-emerald-500/20 rounded-xl h-10 px-5 text-sm font-medium transition-all"
               variant="ghost"
             >
               {joinLoading ? "Joining..." : "Join"}
@@ -131,16 +152,16 @@ export default function GroupsPage() {
         {loading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="bg-white rounded-2xl h-48 animate-pulse border border-gray-100" />
+              <div key={i} className="bg-white dark:bg-zinc-800 rounded-2xl h-48 animate-pulse border border-gray-100 dark:border-zinc-700" />
             ))}
           </div>
         ) : filtered.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 text-center">
-            <div className="w-16 h-16 rounded-2xl bg-emerald-50 flex items-center justify-center mb-4">
+            <div className="w-16 h-16 rounded-2xl bg-emerald-50 dark:bg-emerald-500/10 flex items-center justify-center mb-4">
               <Users className="text-emerald-400" size={26} />
             </div>
-            <p className="text-gray-700 font-semibold text-base">No groups found</p>
-            <p className="text-gray-400 text-sm mt-1 max-w-xs">
+            <p className="text-gray-700 dark:text-zinc-300 font-semibold text-base">No groups found</p>
+            <p className="text-gray-400 dark:text-zinc-500 text-sm mt-1 max-w-xs">
               Create a new group or join one with its ID to get started
             </p>
           </div>
@@ -148,12 +169,11 @@ export default function GroupsPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {filtered.map((group) => (
               <Link href={`/groups/${group.id}`} key={group.id}>
-                <div className="bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 cursor-pointer overflow-hidden h-full">
-                  {/* Card top accent */}
+                <div className="bg-white dark:bg-zinc-800 rounded-2xl border border-gray-100 dark:border-zinc-700 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 cursor-pointer overflow-hidden h-full">
                   <div className="h-1 bg-gradient-to-r from-emerald-400 to-emerald-600" />
                   <div className="p-5">
                     <div className="flex items-start justify-between mb-4">
-                      <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-emerald-400/20 to-emerald-600/20 flex items-center justify-center text-emerald-700 font-bold text-lg">
+                      <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-emerald-400/20 to-emerald-600/20 flex items-center justify-center text-emerald-700 dark:text-emerald-400 font-bold text-lg">
                         {group.name[0].toUpperCase()}
                       </div>
                       <span className={`text-[10px] font-semibold px-2.5 py-1 rounded-full ${statusColors[group.status]}`}>
@@ -162,41 +182,41 @@ export default function GroupsPage() {
                     </div>
 
                     <div className="flex items-baseline justify-between gap-2">
-                      <h3 className="font-semibold text-gray-900 text-sm leading-tight truncate">{group.name}</h3>
+                      <h3 className="font-semibold text-gray-900 dark:text-white text-sm leading-tight truncate">{group.name}</h3>
                       <CopyButton id={group.id} />
                     </div>
-                    <p className="text-gray-400 text-xs mt-1 line-clamp-2 leading-relaxed">
+                    <p className="text-gray-400 dark:text-zinc-500 text-xs mt-1 line-clamp-2 leading-relaxed">
                       {group.description || "No description provided"}
                     </p>
 
-                    <div className="mt-4 pt-4 border-t border-gray-50 grid grid-cols-2 gap-x-4 gap-y-3">
+                    <div className="mt-4 pt-4 border-t border-gray-50 dark:border-zinc-700 grid grid-cols-2 gap-x-4 gap-y-3">
                       <div>
-                        <p className="text-[10px] text-gray-400 uppercase tracking-wide font-medium">Contribution</p>
-                        <p className="text-sm font-bold text-gray-900 mt-0.5 tabular-nums">
+                        <p className="text-[10px] text-gray-400 dark:text-zinc-500 uppercase tracking-wide font-medium">Contribution</p>
+                        <p className="text-sm font-bold text-gray-900 dark:text-white mt-0.5 tabular-nums">
                           ₦{group.contributionAmount.toLocaleString()}
                         </p>
                       </div>
                       <div>
-                        <p className="text-[10px] text-gray-400 uppercase tracking-wide font-medium">Cycle</p>
-                        <p className="text-sm font-bold text-gray-900 mt-0.5 capitalize">
+                        <p className="text-[10px] text-gray-400 dark:text-zinc-500 uppercase tracking-wide font-medium">Cycle</p>
+                        <p className="text-sm font-bold text-gray-900 dark:text-white mt-0.5 capitalize">
                           {group.cycleType.toLowerCase()}
                         </p>
                       </div>
                       <div>
-                        <p className="text-[10px] text-gray-400 uppercase tracking-wide font-medium">Members</p>
-                        <p className="text-sm font-bold text-gray-900 mt-0.5">
+                        <p className="text-[10px] text-gray-400 dark:text-zinc-500 uppercase tracking-wide font-medium">Members</p>
+                        <p className="text-sm font-bold text-gray-900 dark:text-white mt-0.5">
                           {group.currentMembers}/{group.maxMembers}
                         </p>
                       </div>
                       <div>
-                        <p className="text-[10px] text-gray-400 uppercase tracking-wide font-medium">Pot Size</p>
-                        <p className="text-sm font-bold text-emerald-600 mt-0.5 tabular-nums">
+                        <p className="text-[10px] text-gray-400 dark:text-zinc-500 uppercase tracking-wide font-medium">Pot Size</p>
+                        <p className="text-sm font-bold text-emerald-600 dark:text-emerald-400 mt-0.5 tabular-nums">
                           ₦{(group.contributionAmount * group.maxMembers).toLocaleString()}
                         </p>
                       </div>
                     </div>
 
-                    <div className="mt-4 flex items-center gap-1 text-emerald-600 text-xs font-medium">
+                    <div className="mt-4 flex items-center gap-1 text-emerald-600 dark:text-emerald-400 text-xs font-medium">
                       View details <ArrowRight size={11} />
                     </div>
                   </div>

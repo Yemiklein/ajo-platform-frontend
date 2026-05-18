@@ -14,6 +14,7 @@ import {
   ShieldAlert,
   Menu,
   X,
+  Bell,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -22,6 +23,7 @@ const navItems = [
   { label: "My Groups", href: "/groups", icon: Users },
   { label: "Payments", href: "/payments", icon: CreditCard },
   { label: "My Payouts", href: "/payouts", icon: Wallet },
+  { label: "Notifications", href: "/notifications", icon: Bell },
   { label: "Profile", href: "/profile", icon: UserIcon },
 ];
 

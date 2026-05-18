@@ -27,7 +27,7 @@ export default function DashboardLayout({
   }, [isAuthenticated, router]);
 
   return (
-    <div className="flex min-h-screen bg-gray-50">
+    <div className="flex min-h-screen bg-gray-50 dark:bg-zinc-900">
       <Sidebar />
       <main className="flex-1 flex flex-col overflow-hidden lg:ml-0 pt-14 lg:pt-0">
         {children}

@@ -7,10 +7,10 @@ import TopBar from "@/components/shared/TopBar";
 import { Wallet, Trophy, CheckCircle } from "lucide-react";
 
 const statusColors: Record<string, string> = {
-  COMPLETED: "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200",
-  PENDING: "bg-amber-50 text-amber-700 ring-1 ring-amber-200",
-  PROCESSING: "bg-blue-50 text-blue-700 ring-1 ring-blue-200",
-  FAILED: "bg-red-50 text-red-700 ring-1 ring-red-200",
+  COMPLETED: "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-400 dark:ring-emerald-500/20",
+  PENDING: "bg-amber-50 text-amber-700 ring-1 ring-amber-200 dark:bg-amber-500/10 dark:text-amber-400 dark:ring-amber-500/20",
+  PROCESSING: "bg-blue-50 text-blue-700 ring-1 ring-blue-200 dark:bg-blue-500/10 dark:text-blue-400 dark:ring-blue-500/20",
+  FAILED: "bg-red-50 text-red-700 ring-1 ring-red-200 dark:bg-red-500/10 dark:text-red-400 dark:ring-red-500/20",
 };
 
 export default function PayoutsPage() {
@@ -43,25 +43,24 @@ export default function PayoutsPage() {
       value: loading ? "—" : `₦${totalReceived.toLocaleString()}`,
       icon: Wallet,
       accent: "from-emerald-400 to-emerald-600",
-      iconBg: "bg-emerald-50",
-      iconColor: "text-emerald-600",
-      big: true,
+      iconBg: "bg-emerald-50 dark:bg-emerald-500/10",
+      iconColor: "text-emerald-600 dark:text-emerald-400",
     },
     {
       label: "Total Payouts",
       value: loading ? "—" : payouts.length,
       icon: Trophy,
       accent: "from-violet-400 to-violet-600",
-      iconBg: "bg-violet-50",
-      iconColor: "text-violet-600",
+      iconBg: "bg-violet-50 dark:bg-violet-500/10",
+      iconColor: "text-violet-600 dark:text-violet-400",
     },
     {
       label: "Completed",
       value: loading ? "—" : completed,
       icon: CheckCircle,
       accent: "from-sky-400 to-sky-600",
-      iconBg: "bg-sky-50",
-      iconColor: "text-sky-600",
+      iconBg: "bg-sky-50 dark:bg-sky-500/10",
+      iconColor: "text-sky-600 dark:text-sky-400",
     },
   ];
 
@@ -78,40 +77,38 @@ export default function PayoutsPage() {
             return (
               <div
                 key={stat.label}
-                className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 relative overflow-hidden"
+                className="bg-white dark:bg-zinc-800 rounded-2xl p-5 shadow-sm border border-gray-100 dark:border-zinc-700 relative overflow-hidden"
               >
                 <div className={`absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r ${stat.accent}`} />
                 <div className={`w-9 h-9 rounded-xl ${stat.iconBg} flex items-center justify-center mb-4`}>
                   <Icon size={17} className={stat.iconColor} />
                 </div>
-                <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">{stat.label}</p>
-                <p className={`font-bold text-gray-900 mt-1 tabular-nums ${stat.big ? "text-2xl" : "text-2xl"}`}>
-                  {stat.value}
-                </p>
+                <p className="text-[11px] font-semibold text-gray-400 dark:text-zinc-500 uppercase tracking-wider">{stat.label}</p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-white mt-1 tabular-nums">{stat.value}</p>
               </div>
             );
           })}
         </div>
 
         {/* Payouts List */}
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-          <div className="px-6 py-4 border-b border-gray-50">
-            <h3 className="font-semibold text-gray-900">Payout History</h3>
+        <div className="bg-white dark:bg-zinc-800 rounded-2xl shadow-sm border border-gray-100 dark:border-zinc-700 overflow-hidden">
+          <div className="px-6 py-4 border-b border-gray-50 dark:border-zinc-700">
+            <h3 className="font-semibold text-gray-900 dark:text-white">Payout History</h3>
           </div>
           <div className="p-4">
             {loading ? (
               <div className="space-y-3">
                 {[1, 2, 3].map((i) => (
-                  <div key={i} className="h-16 bg-gray-50 rounded-xl animate-pulse" />
+                  <div key={i} className="h-16 bg-gray-50 dark:bg-zinc-700/50 rounded-xl animate-pulse" />
                 ))}
               </div>
             ) : payouts.length === 0 ? (
               <div className="text-center py-16">
-                <div className="w-14 h-14 rounded-2xl bg-violet-50 flex items-center justify-center mx-auto mb-4">
+                <div className="w-14 h-14 rounded-2xl bg-violet-50 dark:bg-violet-500/10 flex items-center justify-center mx-auto mb-4">
                   <Wallet className="text-violet-400" size={24} />
                 </div>
-                <p className="text-gray-700 font-semibold">No payouts yet</p>
-                <p className="text-gray-400 text-sm mt-1">
+                <p className="text-gray-700 dark:text-zinc-300 font-semibold">No payouts yet</p>
+                <p className="text-gray-400 dark:text-zinc-500 text-sm mt-1">
                   Payouts will appear here once your cycle is complete
                 </p>
               </div>
@@ -120,17 +117,17 @@ export default function PayoutsPage() {
                 {payouts.map((payout) => (
                   <div
                     key={payout.id}
-                    className="flex items-center justify-between px-3 py-3.5 rounded-xl hover:bg-gray-50 transition-colors"
+                    className="flex items-center justify-between px-3 py-3.5 rounded-xl hover:bg-gray-50 dark:hover:bg-zinc-700/50 transition-colors"
                   >
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center flex-shrink-0">
-                        <Trophy size={16} className="text-emerald-600" />
+                      <div className="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-500/10 flex items-center justify-center flex-shrink-0">
+                        <Trophy size={16} className="text-emerald-600 dark:text-emerald-400" />
                       </div>
                       <div>
-                        <p className="font-semibold text-gray-900 text-sm">
+                        <p className="font-semibold text-gray-900 dark:text-white text-sm">
                           Cycle {payout.cycleNumber} Payout
                         </p>
-                        <p className="text-xs text-gray-400 mt-0.5">
+                        <p className="text-xs text-gray-400 dark:text-zinc-500 mt-0.5">
                           {payout.disbursedAt
                             ? new Date(payout.disbursedAt).toLocaleDateString("en-NG", {
                                 day: "numeric",
@@ -142,7 +139,7 @@ export default function PayoutsPage() {
                       </div>
                     </div>
                     <div className="text-right flex-shrink-0">
-                      <p className="font-bold text-emerald-600 text-base tabular-nums">
+                      <p className="font-bold text-emerald-600 dark:text-emerald-400 text-base tabular-nums">
                         ₦{payout.amount.toLocaleString()}
                       </p>
                       <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${statusColors[payout.status]}`}>
