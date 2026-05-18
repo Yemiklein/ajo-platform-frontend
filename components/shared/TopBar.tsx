@@ -1,10 +1,12 @@
 "use client";
 
 import { useAuthStore } from "@/store/authStore";
+import { useNotificationStore } from "@/store/notificationStore";
 import { Bell, Sun, Moon } from "lucide-react";
 import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { groupsAPI, payoutsAPI } from "@/lib/api";
 
 interface TopBarProps {
   title: string;
@@ -13,10 +15,41 @@ interface TopBarProps {
 export default function TopBar({ title }: TopBarProps) {
   const { user } = useAuthStore();
   const { theme, setTheme } = useTheme();
+  const { unreadCount, setUnreadCount, loadLastSeen } = useNotificationStore();
   const [mounted, setMounted] = useState(false);
   const initials = `${user?.firstName?.[0] ?? ""}${user?.lastName?.[0] ?? ""}`.toUpperCase();
 
   useEffect(() => { setMounted(true); }, []);
+
+  // Derive unread count from activity since last seen
+  useEffect(() => {
+    if (!user) return;
+    const lastSeen = loadLastSeen();
+
+    const compute = async () => {
+      try {
+        const [groupsRes, payoutsRes] = await Promise.all([
+          groupsAPI.getMyGroups(),
+          payoutsAPI.getMyPayouts(),
+        ]);
+        const groups = groupsRes.data ?? [];
+        const payouts = payoutsRes.data ?? [];
+
+        let count = 0;
+        for (const g of groups) {
+          if (new Date(g.createdAt).getTime() > lastSeen) count++;
+        }
+        for (const p of payouts) {
+          const ts = new Date(p.disbursedAt || p.createdAt).getTime();
+          if (ts > lastSeen) count++;
+        }
+        setUnreadCount(count);
+      } catch {
+        // non-critical — silently ignore
+      }
+    };
+    compute();
+  }, [user, loadLastSeen, setUnreadCount]);
 
   return (
     <header className="h-16 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-md border-b border-gray-100 dark:border-zinc-800 flex items-center justify-between px-4 lg:px-8 sticky top-0 z-20">
@@ -35,13 +68,19 @@ export default function TopBar({ title }: TopBarProps) {
           </button>
         )}
 
-        {/* Notifications bell */}
+        {/* Notifications bell with unread count */}
         <Link
           href="/notifications"
           className="relative p-2 text-gray-400 dark:text-zinc-400 hover:text-gray-600 dark:hover:text-zinc-200 hover:bg-gray-50 dark:hover:bg-zinc-800 rounded-xl transition-all"
         >
           <Bell size={18} />
-          <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full bg-emerald-500" />
+          {unreadCount > 0 ? (
+            <span className="absolute -top-0.5 -right-0.5 min-w-[17px] h-[17px] rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center px-0.5 leading-none">
+              {unreadCount > 9 ? "9+" : unreadCount}
+            </span>
+          ) : (
+            <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full bg-emerald-500" />
+          )}
         </Link>
 
         {/* Avatar */}

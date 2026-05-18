@@ -6,6 +6,7 @@ import { Group, Payout } from "@/types";
 import TopBar from "@/components/shared/TopBar";
 import { Bell, Users, Trophy, Clock, ArrowRight, CheckCircle } from "lucide-react";
 import Link from "next/link";
+import { useNotificationStore } from "@/store/notificationStore";
 
 interface NotificationItem {
   id: string;
@@ -34,6 +35,10 @@ export default function NotificationsPage() {
   const [groups, setGroups] = useState<Group[]>([]);
   const [payouts, setPayouts] = useState<Payout[]>([]);
   const [loading, setLoading] = useState(true);
+  const { markAllRead } = useNotificationStore();
+
+  // Mark all notifications as read when this page is opened
+  useEffect(() => { markAllRead(); }, [markAllRead]);
 
   useEffect(() => {
     const fetchData = async () => {

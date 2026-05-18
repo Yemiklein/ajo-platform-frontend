@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import {
   ArrowLeft, Users, Trophy, CreditCard, Bell, UserPlus,
   Share2, Check, History, ChevronDown, ChevronUp, PartyPopper,
+  Activity, UserCheck, Banknote,
 } from "lucide-react";
 import Link from "next/link";
 import InviteMemberModal from "@/components/groups/InviteMemberModal";
@@ -44,6 +45,7 @@ export default function GroupDetailPage() {
   const [currentCycle, setCurrentCycle] = useState(1);
   const [groupPayouts, setGroupPayouts] = useState<Payout[]>([]);
   const [linkCopied, setLinkCopied] = useState(false);
+  const [showActivity, setShowActivity] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -517,6 +519,81 @@ export default function GroupDetailPage() {
               )}
             </div>
           )}
+
+          {/* Activity Feed */}
+          {(group.members?.length || allContributions.length || groupPayouts.length) ? (
+            <div className="bg-white dark:bg-zinc-800 rounded-2xl border border-gray-100 dark:border-zinc-700 shadow-sm">
+              <button
+                onClick={() => setShowActivity(!showActivity)}
+                className="w-full flex items-center justify-between px-6 py-4 border-b border-gray-50 dark:border-zinc-700 hover:bg-gray-50 dark:hover:bg-zinc-700/50 transition-colors rounded-t-2xl"
+              >
+                <div className="flex items-center gap-2.5">
+                  <Activity size={16} className="text-gray-400 dark:text-zinc-500" />
+                  <h3 className="font-semibold text-gray-900 dark:text-white">Activity</h3>
+                </div>
+                {showActivity ? <ChevronUp size={16} className="text-gray-400" /> : <ChevronDown size={16} className="text-gray-400" />}
+              </button>
+              {showActivity && (
+                <div className="p-4">
+                  <ol className="relative border-l border-gray-100 dark:border-zinc-700 ml-3 space-y-5">
+                    {/* Payouts */}
+                    {[...groupPayouts]
+                      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+                      .map((p) => (
+                        <li key={`payout-${p.id}`} className="ml-5">
+                          <span className="absolute -left-2.5 flex items-center justify-center w-5 h-5 rounded-full bg-violet-50 dark:bg-violet-500/10 ring-4 ring-white dark:ring-zinc-800">
+                            <Trophy size={9} className="text-violet-600 dark:text-violet-400" />
+                          </span>
+                          <p className="text-sm font-medium text-gray-900 dark:text-white leading-tight">
+                            Cycle {p.cycleNumber} payout — {p.recipient?.firstName} {p.recipient?.lastName}
+                          </p>
+                          <p className="text-xs text-gray-400 dark:text-zinc-500 mt-0.5">
+                            ₦{p.amount?.toLocaleString()} · {new Date(p.createdAt).toLocaleDateString("en-NG", { day: "numeric", month: "short", year: "numeric" })}
+                          </p>
+                        </li>
+                      ))}
+                    {/* Contributions (paid only, latest 10) */}
+                    {[...allContributions]
+                      .filter((c) => c.status === "PAID")
+                      .sort((a, b) => new Date(b.paidAt || b.createdAt).getTime() - new Date(a.paidAt || a.createdAt).getTime())
+                      .slice(0, 10)
+                      .map((c) => {
+                        const member = group.members?.find((m) => m.user?.id === c.userId);
+                        return (
+                          <li key={`contrib-${c.id}`} className="ml-5">
+                            <span className="absolute -left-2.5 flex items-center justify-center w-5 h-5 rounded-full bg-emerald-50 dark:bg-emerald-500/10 ring-4 ring-white dark:ring-zinc-800">
+                              <Banknote size={9} className="text-emerald-600 dark:text-emerald-400" />
+                            </span>
+                            <p className="text-sm font-medium text-gray-900 dark:text-white leading-tight">
+                              {member?.user?.firstName ?? "A member"} paid Cycle {c.cycleNumber}
+                            </p>
+                            <p className="text-xs text-gray-400 dark:text-zinc-500 mt-0.5">
+                              ₦{c.amount.toLocaleString()} · {new Date(c.paidAt || c.createdAt).toLocaleDateString("en-NG", { day: "numeric", month: "short", year: "numeric" })}
+                            </p>
+                          </li>
+                        );
+                      })}
+                    {/* Members joined */}
+                    {[...(group.members ?? [])]
+                      .sort((a, b) => new Date(b.joinedAt).getTime() - new Date(a.joinedAt).getTime())
+                      .map((m) => (
+                        <li key={`member-${m.id}`} className="ml-5">
+                          <span className="absolute -left-2.5 flex items-center justify-center w-5 h-5 rounded-full bg-sky-50 dark:bg-sky-500/10 ring-4 ring-white dark:ring-zinc-800">
+                            <UserCheck size={9} className="text-sky-600 dark:text-sky-400" />
+                          </span>
+                          <p className="text-sm font-medium text-gray-900 dark:text-white leading-tight">
+                            {m.user?.firstName} {m.user?.lastName} joined
+                          </p>
+                          <p className="text-xs text-gray-400 dark:text-zinc-500 mt-0.5">
+                            {new Date(m.joinedAt).toLocaleDateString("en-NG", { day: "numeric", month: "short", year: "numeric" })}
+                          </p>
+                        </li>
+                      ))}
+                  </ol>
+                </div>
+              )}
+            </div>
+          ) : null}
 
           {/* Payout History */}
           {groupPayouts.length > 0 && (

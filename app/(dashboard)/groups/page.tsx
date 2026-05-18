@@ -6,9 +6,82 @@ import { Group } from "@/types";
 import TopBar from "@/components/shared/TopBar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Users, Plus, Search, ArrowRight, Copy, Check, Share2 } from "lucide-react";
+import { Users, Plus, Search, ArrowRight, Copy, Check, Share2, Calendar } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
+
+// ── Due date helpers ─────────────────────────────────────────────────────────
+
+function getNextDueDate(group: Group): Date | null {
+  if (group.status !== "ACTIVE") return null;
+  const created = new Date(group.createdAt);
+  const now = new Date();
+
+  switch (group.cycleType) {
+    case "DAILY": {
+      const next = new Date(now);
+      next.setDate(next.getDate() + 1);
+      next.setHours(23, 59, 59, 0);
+      return next;
+    }
+    case "WEEKLY": {
+      const target = created.getDay();
+      let diff = target - now.getDay();
+      if (diff <= 0) diff += 7;
+      const next = new Date(now);
+      next.setDate(now.getDate() + diff);
+      return next;
+    }
+    case "MONTHLY": {
+      const day = created.getDate();
+      let next = new Date(now.getFullYear(), now.getMonth(), day);
+      if (next <= now) next = new Date(now.getFullYear(), now.getMonth() + 1, day);
+      return next;
+    }
+    default:
+      return null;
+  }
+}
+
+function daysUntil(date: Date): number {
+  const now = new Date();
+  now.setHours(0, 0, 0, 0);
+  const d = new Date(date);
+  d.setHours(0, 0, 0, 0);
+  return Math.round((d.getTime() - now.getTime()) / 86_400_000);
+}
+
+function DueBadge({ group }: { group: Group }) {
+  const due = getNextDueDate(group);
+  if (!due) return null;
+
+  const days = daysUntil(due);
+  let label: string;
+  let cls: string;
+
+  if (days === 0) {
+    label = "Due today";
+    cls = "bg-red-50 text-red-600 ring-1 ring-red-200 dark:bg-red-500/10 dark:text-red-400 dark:ring-red-500/20";
+  } else if (days === 1) {
+    label = "Due tomorrow";
+    cls = "bg-amber-50 text-amber-700 ring-1 ring-amber-200 dark:bg-amber-500/10 dark:text-amber-400 dark:ring-amber-500/20";
+  } else if (days <= 3) {
+    label = `Due in ${days} days`;
+    cls = "bg-amber-50 text-amber-700 ring-1 ring-amber-200 dark:bg-amber-500/10 dark:text-amber-400 dark:ring-amber-500/20";
+  } else {
+    label = `Due in ${days} days`;
+    cls = "bg-gray-50 text-gray-500 ring-1 ring-gray-200 dark:bg-zinc-700 dark:text-zinc-400 dark:ring-zinc-600";
+  }
+
+  return (
+    <span className={`inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full ${cls}`}>
+      <Calendar size={9} />
+      {label}
+    </span>
+  );
+}
+
+// ── CopyButton ────────────────────────────────────────────────────────────────
 
 function CopyButton({ id }: { id: number }) {
   const [copied, setCopied] = useState(false);
@@ -51,12 +124,16 @@ function CopyButton({ id }: { id: number }) {
   );
 }
 
+// ── Status colours ────────────────────────────────────────────────────────────
+
 const statusColors: Record<string, string> = {
   ACTIVE: "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-400 dark:ring-emerald-500/20",
   PENDING: "bg-amber-50 text-amber-700 ring-1 ring-amber-200 dark:bg-amber-500/10 dark:text-amber-400 dark:ring-amber-500/20",
   COMPLETED: "bg-blue-50 text-blue-700 ring-1 ring-blue-200 dark:bg-blue-500/10 dark:text-blue-400 dark:ring-blue-500/20",
   CANCELLED: "bg-red-50 text-red-700 ring-1 ring-red-200 dark:bg-red-500/10 dark:text-red-400 dark:ring-red-500/20",
 };
+
+// ── Page ──────────────────────────────────────────────────────────────────────
 
 export default function GroupsPage() {
   const [groups, setGroups] = useState<Group[]>([]);
@@ -66,17 +143,10 @@ export default function GroupsPage() {
   const [joinLoading, setJoinLoading] = useState(false);
 
   useEffect(() => {
-    const fetchGroups = async () => {
-      try {
-        const res = await groupsAPI.getMyGroups();
-        setGroups(res.data);
-      } catch (err) {
-        console.error("Failed to fetch groups", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchGroups();
+    groupsAPI.getMyGroups()
+      .then((res) => setGroups(res.data))
+      .catch((err) => console.error("Failed to fetch groups", err))
+      .finally(() => setLoading(false));
   }, []);
 
   const handleJoin = async () => {
@@ -152,7 +222,7 @@ export default function GroupsPage() {
         {loading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="bg-white dark:bg-zinc-800 rounded-2xl h-48 animate-pulse border border-gray-100 dark:border-zinc-700" />
+              <div key={i} className="bg-white dark:bg-zinc-800 rounded-2xl h-56 animate-pulse border border-gray-100 dark:border-zinc-700" />
             ))}
           </div>
         ) : filtered.length === 0 ? (
@@ -169,9 +239,9 @@ export default function GroupsPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {filtered.map((group) => (
               <Link href={`/groups/${group.id}`} key={group.id}>
-                <div className="bg-white dark:bg-zinc-800 rounded-2xl border border-gray-100 dark:border-zinc-700 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 cursor-pointer overflow-hidden h-full">
-                  <div className="h-1 bg-gradient-to-r from-emerald-400 to-emerald-600" />
-                  <div className="p-5">
+                <div className="bg-white dark:bg-zinc-800 rounded-2xl border border-gray-100 dark:border-zinc-700 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 cursor-pointer overflow-hidden h-full flex flex-col">
+                  <div className="h-1 bg-gradient-to-r from-emerald-400 to-emerald-600 flex-shrink-0" />
+                  <div className="p-5 flex flex-col flex-1">
                     <div className="flex items-start justify-between mb-4">
                       <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-emerald-400/20 to-emerald-600/20 flex items-center justify-center text-emerald-700 dark:text-emerald-400 font-bold text-lg">
                         {group.name[0].toUpperCase()}
@@ -216,8 +286,12 @@ export default function GroupsPage() {
                       </div>
                     </div>
 
-                    <div className="mt-4 flex items-center gap-1 text-emerald-600 dark:text-emerald-400 text-xs font-medium">
-                      View details <ArrowRight size={11} />
+                    {/* Due date badge */}
+                    <div className="mt-4 flex items-center justify-between">
+                      <div className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400 text-xs font-medium">
+                        View details <ArrowRight size={11} />
+                      </div>
+                      <DueBadge group={group} />
                     </div>
                   </div>
                 </div>
