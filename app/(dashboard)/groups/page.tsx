@@ -148,8 +148,8 @@ export default function GroupsPage() {
 
                     <div className="flex items-baseline justify-between gap-2">
                       <h3 className="font-semibold text-gray-900 text-sm leading-tight truncate">{group.name}</h3>
-                      <span className="text-[10px] font-mono bg-gray-100 text-gray-400 px-1.5 py-0.5 rounded-md flex-shrink-0">
-                        #{group.id}
+                      <span className="text-xs font-bold font-mono bg-emerald-50 text-emerald-700 border border-emerald-200 px-2 py-0.5 rounded-lg flex-shrink-0 tracking-wide">
+                        ID: {group.id}
                       </span>
                     </div>
                     <p className="text-gray-400 text-xs mt-1 line-clamp-2 leading-relaxed">
