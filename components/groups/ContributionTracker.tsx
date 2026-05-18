@@ -51,7 +51,7 @@ export default function ContributionTracker({ groupId }: ContributionTrackerProp
               <p className="text-sm text-gray-500">Total Expected</p>
               <p className="text-2xl font-bold">₦{summary.totalExpectedAmount?.toLocaleString()}</p>
             </div>
-            <DollarSign className="text-blue-500" size={32} />
+            {/* <DollarSign className="text-blue-500" size={32} /> */}
           </div>
         </div>
 

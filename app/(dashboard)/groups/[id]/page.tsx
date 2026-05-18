@@ -43,35 +43,47 @@ export default function GroupDetailPage() {
     const [showContributionTracker, setShowContributionTracker] = useState(false);
     const [sendingReminders, setSendingReminders] = useState(false);
     const [payoutExists, setPayoutExists] = useState(false);
-    const currentCycle = 1;
+    const [currentCycle, setCurrentCycle] = useState(1);
+    const [groupPayouts, setGroupPayouts] = useState<Payout[]>([]);
 
-    useEffect(() => {
-        const fetchData = async () => {
-            try {
-                const groupRes = await groupsAPI.getById(Number(id));
-                setGroup(groupRes.data);
+   useEffect(() => {
+    const fetchData = async () => {
+        try {
+            const groupRes = await groupsAPI.getById(Number(id));
+            setGroup(groupRes.data);
 
-                if (groupRes.data.status === "ACTIVE") {
-                    const [progressRes, payoutRes] = await Promise.all([
-                        contributionsAPI.getProgress(Number(id), currentCycle),
-                        payoutsAPI.getByGroup(Number(id)),
-                    ]);
-                    setProgress(progressRes.data);
-                    const existingPayout = payoutRes.data.find(
-                        (p: Payout) => p.cycleNumber === currentCycle
-                    );
-                    if (existingPayout) {
-                        setPayoutExists(true);
-                    }
+            if (groupRes.data.status === "ACTIVE") {
+                // First get payouts to determine current cycle
+                const payoutRes = await payoutsAPI.getByGroup(Number(id));
+                const completedPayouts = payoutRes.data.filter(
+                    (p: Payout) => p.status === "COMPLETED"
+                ).length;
+                const calculatedCycle = completedPayouts + 1;
+                setCurrentCycle(calculatedCycle);
+
+                // Check if payout already exists for current cycle
+                const existingPayout = payoutRes.data.find(
+                    (p: Payout) => p.cycleNumber === calculatedCycle
+                );
+                if (existingPayout) {
+                    setPayoutExists(true);
                 }
-            } catch (err) {
-                console.error("Failed to load group", err);
-            } finally {
-                setLoading(false);
+                setGroupPayouts(payoutRes.data);
+                // Now fetch progress for the correct cycle
+                const progressRes = await contributionsAPI.getProgress(
+                    Number(id),
+                    calculatedCycle
+                );
+                setProgress(progressRes.data);
             }
-        };
-        fetchData();
-    }, [id]);
+        } catch (err) {
+            console.error("Failed to load group", err);
+        } finally {
+            setLoading(false);
+        }
+    };
+    fetchData();
+}, [id]);
 
     const handlePay = async () => {
         setPayLoading(true);
@@ -90,26 +102,33 @@ export default function GroupDetailPage() {
         }
     };
 
-    const handleTriggerPayout = async () => {
-        setPayoutLoading(true);
-        setError("");
-        setSuccessMsg("");
-        try {
-            await payoutsAPI.trigger(Number(id), currentCycle);
-            setSuccessMsg("Payout triggered successfully!");
-            // Refresh progress
-            const progressRes = await contributionsAPI.getProgress(
-                Number(id),
-                currentCycle
-            );
-            setProgress(progressRes.data);
-        } catch (err: unknown) {
-            const error = err as { response?: { data?: { message?: string } } };
-            setError(error.response?.data?.message || "Failed to trigger payout");
-        } finally {
-            setPayoutLoading(false);
-        }
-    };
+   const handleTriggerPayout = async () => {
+    setPayoutLoading(true);
+    setError("");
+    setSuccessMsg("");
+    try {
+        await payoutsAPI.trigger(Number(id), currentCycle);
+        setSuccessMsg("Payout triggered successfully!");
+        setPayoutExists(true);
+
+        // Advance to next cycle
+        const nextCycle = currentCycle + 1;
+        setCurrentCycle(nextCycle);
+        setPayoutExists(false);
+
+        // Fetch progress for next cycle
+        const progressRes = await contributionsAPI.getProgress(
+            Number(id),
+            nextCycle
+        );
+        setProgress(progressRes.data);
+    } catch (err: unknown) {
+        const error = err as { response?: { data?: { message?: string } } };
+        setError(error.response?.data?.message || "Failed to trigger payout");
+    } finally {
+        setPayoutLoading(false);
+    }
+};
 
     // NEW: Handle sending reminders
     const handleSendReminders = async () => {
@@ -462,6 +481,45 @@ export default function GroupDetailPage() {
                 // }}
                 />
             )}
+
+            {/* Payout History */}
+{groupPayouts.length > 0 && (
+    <Card>
+        <CardHeader>
+            <CardTitle className="text-base flex items-center gap-2">
+                <Trophy size={18} className="text-purple-600" />
+                Payout History
+            </CardTitle>
+        </CardHeader>
+        <CardContent>
+            <div className="space-y-3">
+                {groupPayouts.map((payout) => (
+                    <div
+                        key={payout.id}
+                        className="flex items-center justify-between p-3 rounded-lg border border-gray-100"
+                    >
+                        <div>
+                            <p className="text-sm font-medium text-gray-900">
+                                Cycle {payout.cycleNumber} — {payout.narration}
+                            </p>
+                            <p className="text-xs text-gray-400 mt-0.5">
+                                Recipient: {payout.recipient?.firstName} {payout.recipient?.lastName}
+                            </p>
+                        </div>
+                        <div className="text-right">
+                            <p className="font-bold text-emerald-600">
+                                ₦{payout.amount?.toLocaleString()}
+                            </p>
+                            <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${statusColors[payout.status]}`}>
+                                {payout.status}
+                            </span>
+                        </div>
+                    </div>
+                ))}
+            </div>
+        </CardContent>
+    </Card>
+)}
         </div>
     );
 }

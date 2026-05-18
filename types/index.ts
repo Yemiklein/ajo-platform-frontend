@@ -112,6 +112,7 @@ export interface Payout {
   narration: string;
   createdAt: string;
   disbursedAt: string;
+  
 }
 
 // ===== Payments =====
@@ -147,3 +148,5 @@ export interface FraudAlert {
   createdAt: string;
   resolvedAt: string;
 }
+
+
