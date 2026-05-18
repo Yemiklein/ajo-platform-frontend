@@ -13,6 +13,7 @@ import { ArrowLeft, Users, Trophy, CreditCard, Bell, UserPlus } from "lucide-rea
 import Link from "next/link";
 import InviteMemberModal from "@/components/groups/InviteMemberModal";
 import ContributionTracker from "@/components/groups/ContributionTracker";
+import { toast } from "sonner";
 
 
 const statusColors: Record<string, string> = {
@@ -35,8 +36,6 @@ export default function GroupDetailPage() {
     const [loading, setLoading] = useState(true);
     const [payLoading, setPayLoading] = useState(false);
     const [payoutLoading, setPayoutLoading] = useState(false);
-    const [error, setError] = useState("");
-    const [successMsg, setSuccessMsg] = useState("");
 
     // NEW: State for new features
     const [showInviteModal, setShowInviteModal] = useState(false);
@@ -87,60 +86,45 @@ export default function GroupDetailPage() {
 
     const handlePay = async () => {
         setPayLoading(true);
-        setError("");
         try {
             const res = await paymentsAPI.initialize({
                 groupId: Number(id),
                 cycleNumber: currentCycle,
             });
-            // Redirect to Paystack checkout
             window.location.href = res.data.authorizationUrl;
         } catch (err: unknown) {
             const error = err as { response?: { data?: { message?: string } } };
-            setError(error.response?.data?.message || "Failed to initialize payment");
+            toast.error(error.response?.data?.message || "Failed to initialize payment");
             setPayLoading(false);
         }
     };
 
-   const handleTriggerPayout = async () => {
-    setPayoutLoading(true);
-    setError("");
-    setSuccessMsg("");
-    try {
-        await payoutsAPI.trigger(Number(id), currentCycle);
-        setSuccessMsg("Payout triggered successfully!");
-        setPayoutExists(true);
+    const handleTriggerPayout = async () => {
+        setPayoutLoading(true);
+        try {
+            await payoutsAPI.trigger(Number(id), currentCycle);
+            toast.success("Payout triggered successfully!");
+            setPayoutExists(true);
+            const nextCycle = currentCycle + 1;
+            setCurrentCycle(nextCycle);
+            setPayoutExists(false);
+            const progressRes = await contributionsAPI.getProgress(Number(id), nextCycle);
+            setProgress(progressRes.data);
+        } catch (err: unknown) {
+            const error = err as { response?: { data?: { message?: string } } };
+            toast.error(error.response?.data?.message || "Failed to trigger payout");
+        } finally {
+            setPayoutLoading(false);
+        }
+    };
 
-        // Advance to next cycle
-        const nextCycle = currentCycle + 1;
-        setCurrentCycle(nextCycle);
-        setPayoutExists(false);
-
-        // Fetch progress for next cycle
-        const progressRes = await contributionsAPI.getProgress(
-            Number(id),
-            nextCycle
-        );
-        setProgress(progressRes.data);
-    } catch (err: unknown) {
-        const error = err as { response?: { data?: { message?: string } } };
-        setError(error.response?.data?.message || "Failed to trigger payout");
-    } finally {
-        setPayoutLoading(false);
-    }
-};
-
-    // NEW: Handle sending reminders
     const handleSendReminders = async () => {
         setSendingReminders(true);
-        setError("");
-        setSuccessMsg("");
         try {
             await groupsAPI.sendReminders(Number(id));
-            setSuccessMsg("Reminders sent successfully to members who haven't paid!");
+            toast.success("Reminders sent to members who haven't paid!");
         } catch (err: any) {
-            setError(err.response?.data?.message || "Failed to send reminders");
-            console.error(err);
+            toast.error(err.response?.data?.message || "Failed to send reminders");
         } finally {
             setSendingReminders(false);
         }
@@ -231,18 +215,6 @@ export default function GroupDetailPage() {
                         </div>
                     )}
                 </div>
-
-                {/* Error / Success */}
-                {error && (
-                    <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
-                        {error}
-                    </div>
-                )}
-                {successMsg && (
-                    <div className="bg-emerald-50 border border-emerald-200 text-emerald-700 px-4 py-3 rounded-lg text-sm">
-                        {successMsg}
-                    </div>
-                )}
 
                 {/* Group Header */}
                 <Card>

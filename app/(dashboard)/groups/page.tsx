@@ -6,8 +6,29 @@ import { Group } from "@/types";
 import TopBar from "@/components/shared/TopBar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Users, Plus, Search, ArrowRight } from "lucide-react";
+import { Users, Plus, Search, ArrowRight, Copy, Check } from "lucide-react";
 import Link from "next/link";
+import { toast } from "sonner";
+
+function CopyButton({ id }: { id: number }) {
+  const [copied, setCopied] = useState(false);
+  const handleCopy = (e: React.MouseEvent) => {
+    e.preventDefault();
+    navigator.clipboard.writeText(String(id));
+    setCopied(true);
+    toast.success(`Group ID ${id} copied!`);
+    setTimeout(() => setCopied(false), 2000);
+  };
+  return (
+    <button
+      onClick={handleCopy}
+      className="flex items-center gap-1.5 text-xs font-bold font-mono bg-emerald-50 text-emerald-700 border border-emerald-200 px-2 py-0.5 rounded-lg flex-shrink-0 tracking-wide hover:bg-emerald-100 transition-colors"
+    >
+      {copied ? <Check size={11} /> : <Copy size={11} />}
+      ID: {id}
+    </button>
+  );
+}
 
 const statusColors: Record<string, string> = {
   ACTIVE: "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200",
@@ -22,8 +43,6 @@ export default function GroupsPage() {
   const [search, setSearch] = useState("");
   const [joinId, setJoinId] = useState("");
   const [joinLoading, setJoinLoading] = useState(false);
-  const [joinError, setJoinError] = useState("");
-  const [joinSuccess, setJoinSuccess] = useState("");
 
   useEffect(() => {
     const fetchGroups = async () => {
@@ -42,17 +61,15 @@ export default function GroupsPage() {
   const handleJoin = async () => {
     if (!joinId.trim()) return;
     setJoinLoading(true);
-    setJoinError("");
-    setJoinSuccess("");
     try {
       await groupsAPI.join({ groupId: Number(joinId) });
-      setJoinSuccess("Successfully joined the group!");
+      toast.success("Successfully joined the group!");
       setJoinId("");
       const res = await groupsAPI.getMyGroups();
       setGroups(res.data);
     } catch (err: unknown) {
       const error = err as { response?: { data?: { message?: string } } };
-      setJoinError(error.response?.data?.message || "Failed to join group. Check the ID and try again.");
+      toast.error(error.response?.data?.message || "Failed to join group. Check the ID and try again.");
     } finally {
       setJoinLoading(false);
     }
@@ -108,8 +125,6 @@ export default function GroupsPage() {
               {joinLoading ? "Joining..." : "Join"}
             </Button>
           </div>
-          {joinError && <p className="text-rose-500 text-xs mt-2.5">{joinError}</p>}
-          {joinSuccess && <p className="text-emerald-600 text-xs mt-2.5">{joinSuccess}</p>}
         </div>
 
         {/* Groups Grid */}
@@ -148,9 +163,7 @@ export default function GroupsPage() {
 
                     <div className="flex items-baseline justify-between gap-2">
                       <h3 className="font-semibold text-gray-900 text-sm leading-tight truncate">{group.name}</h3>
-                      <span className="text-xs font-bold font-mono bg-emerald-50 text-emerald-700 border border-emerald-200 px-2 py-0.5 rounded-lg flex-shrink-0 tracking-wide">
-                        ID: {group.id}
-                      </span>
+                      <CopyButton id={group.id} />
                     </div>
                     <p className="text-gray-400 text-xs mt-1 line-clamp-2 leading-relaxed">
                       {group.description || "No description provided"}
