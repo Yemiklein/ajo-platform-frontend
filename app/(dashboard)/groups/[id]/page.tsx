@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
   ArrowLeft, Users, Trophy, CreditCard, Bell, UserPlus,
-  Share2, Check, History, ChevronDown, ChevronUp,
+  Share2, Check, History, ChevronDown, ChevronUp, PartyPopper,
 } from "lucide-react";
 import Link from "next/link";
 import InviteMemberModal from "@/components/groups/InviteMemberModal";
@@ -98,12 +98,22 @@ export default function GroupDetailPage() {
     try {
       await payoutsAPI.trigger(Number(id), currentCycle);
       toast.success("Payout triggered successfully!");
-      setPayoutExists(true);
-      const nextCycle = currentCycle + 1;
-      setCurrentCycle(nextCycle);
-      setPayoutExists(false);
-      const progressRes = await contributionsAPI.getProgress(Number(id), nextCycle);
-      setProgress(progressRes.data);
+
+      // Re-fetch group so we pick up any COMPLETED status the backend set
+      const [groupRes, payoutRes] = await Promise.all([
+        groupsAPI.getById(Number(id)),
+        payoutsAPI.getByGroup(Number(id)),
+      ]);
+      setGroup(groupRes.data);
+      setGroupPayouts(payoutRes.data);
+
+      if (groupRes.data.status === "ACTIVE") {
+        const nextCycle = currentCycle + 1;
+        setCurrentCycle(nextCycle);
+        setPayoutExists(false);
+        const progressRes = await contributionsAPI.getProgress(Number(id), nextCycle);
+        setProgress(progressRes.data);
+      }
     } catch (err: unknown) {
       const error = err as { response?: { data?: { message?: string } } };
       toast.error(error.response?.data?.message || "Failed to trigger payout");
@@ -287,6 +297,30 @@ export default function GroupDetailPage() {
           {/* Contribution Tracker */}
           {showContributionTracker && group.status === "ACTIVE" && (
             <ContributionTracker groupId={Number(id)} />
+          )}
+
+          {/* Ajo Completed Banner */}
+          {group.status === "COMPLETED" && (
+            <div className="bg-white dark:bg-zinc-800 rounded-2xl border border-gray-100 dark:border-zinc-700 shadow-sm overflow-hidden">
+              <div className="h-1 bg-gradient-to-r from-violet-400 to-violet-600" />
+              <div className="p-6 flex items-start gap-4">
+                <div className="w-12 h-12 rounded-2xl bg-violet-50 dark:bg-violet-500/10 flex items-center justify-center flex-shrink-0">
+                  <PartyPopper size={22} className="text-violet-600 dark:text-violet-400" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-gray-900 dark:text-white">This Ajo has ended</h3>
+                  <p className="text-sm text-gray-500 dark:text-zinc-400 mt-1 leading-relaxed">
+                    All cycles are complete and every member has received their payout. Well done to everyone in this circle!
+                  </p>
+                  <Link
+                    href="/groups"
+                    className="inline-flex items-center gap-1.5 mt-4 text-sm font-medium text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 transition-colors"
+                  >
+                    Browse other groups <ArrowLeft size={13} className="rotate-180" />
+                  </Link>
+                </div>
+              </div>
+            </div>
           )}
 
           {/* Cycle Progress + Pay */}
