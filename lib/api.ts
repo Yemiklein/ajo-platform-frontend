@@ -124,6 +124,12 @@ export const paymentsAPI = {
     api.post("/api/payments/initialize", data),
 };
 
+// ===== Users =====
+export const usersAPI = {
+  updateProfile: (data: { firstName?: string; lastName?: string; phoneNumber?: string }) =>
+    api.put("/api/users/me", data),
+};
+
 // ===== Bank Account =====
 export const bankAccountAPI = {
   get: () => api.get("/api/users/me/bank-account"),

@@ -118,7 +118,12 @@ export default function GroupDetailPage() {
       }
     } catch (err: unknown) {
       const error = err as { response?: { data?: { message?: string } } };
-      toast.error(error.response?.data?.message || "Failed to trigger payout");
+      const msg = error.response?.data?.message || "";
+      if (msg.toLowerCase().includes("bank account")) {
+        toast.error("Recipient has no bank account saved. Ask them to add one in their Profile before triggering the payout.");
+      } else {
+        toast.error(msg || "Failed to trigger payout");
+      }
     } finally {
       setPayoutLoading(false);
     }

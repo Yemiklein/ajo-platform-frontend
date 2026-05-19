@@ -5,7 +5,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useAuthStore } from "@/store/authStore";
-import { authAPI, bankAccountAPI } from "@/lib/api";
+import { authAPI, bankAccountAPI, usersAPI } from "@/lib/api";
 import { BankAccount } from "@/types";
 import TopBar from "@/components/shared/TopBar";
 import { Input } from "@/components/ui/input";
@@ -62,7 +62,7 @@ const inputClass = (hasError?: boolean) =>
   `h-11 rounded-xl border-gray-200 dark:border-zinc-600 bg-gray-50 dark:bg-zinc-700 dark:text-white focus:bg-white dark:focus:bg-zinc-600 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-400 transition-all text-sm ${hasError ? "border-red-400 bg-red-50" : ""}`;
 
 export default function ProfilePage() {
-  const { user } = useAuthStore();
+  const { user, updateUser } = useAuthStore();
   const [editMode, setEditMode] = useState(false);
   const [pwMode, setPwMode] = useState(false);
   const [showNew, setShowNew] = useState(false);
@@ -109,9 +109,15 @@ export default function ProfilePage() {
   });
 
   const onSubmit = async (data: ProfileForm) => {
-    console.log("Profile update:", data);
-    toast.success("Profile updated successfully!");
-    setEditMode(false);
+    try {
+      const res = await usersAPI.updateProfile(data);
+      updateUser(res.data);
+      toast.success("Profile updated successfully!");
+      setEditMode(false);
+    } catch (err: unknown) {
+      const error = err as { response?: { data?: { message?: string } } };
+      toast.error(error.response?.data?.message || "Failed to update profile.");
+    }
   };
 
   const handleCancel = () => {
