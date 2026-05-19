@@ -67,10 +67,10 @@ export default function RegisterPage() {
   };
 
   const inputClass = (hasError?: boolean) =>
-    `h-11 rounded-xl border-gray-200 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-400 transition-all text-sm ${hasError ? "border-red-400 bg-red-50" : ""}`;
+    `h-11 rounded-xl border-gray-200 dark:border-zinc-700 bg-gray-50 dark:bg-zinc-800 dark:text-white dark:placeholder:text-zinc-500 focus:bg-white dark:focus:bg-zinc-700 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-400 transition-all text-sm ${hasError ? "border-red-400 bg-red-50 dark:bg-red-500/10" : ""}`;
 
   return (
-    <div className="min-h-screen flex bg-white">
+    <div className="min-h-screen flex bg-white dark:bg-zinc-900">
       {/* Left panel */}
       <div className="hidden lg:flex lg:w-[45%] bg-gradient-to-br from-emerald-600 via-emerald-500 to-teal-500 flex-col justify-between p-12 relative overflow-hidden">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,_rgba(0,0,0,0.15),_transparent_70%)]" />
@@ -104,23 +104,23 @@ export default function RegisterPage() {
       </div>
 
       {/* Right panel */}
-      <div className="flex-1 flex items-center justify-center px-6 py-12 lg:px-16 overflow-y-auto">
+      <div className="flex-1 flex items-center justify-center px-6 py-12 lg:px-16 overflow-y-auto bg-white dark:bg-zinc-900">
         <div className="w-full max-w-sm">
           {/* Mobile logo */}
           <div className="flex items-center gap-3 mb-8 lg:hidden">
             <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center font-bold text-white">
               A
             </div>
-            <span className="font-semibold text-gray-900">Ajo Platform</span>
+            <span className="font-semibold text-gray-900 dark:text-white">Ajo Platform</span>
           </div>
 
           <div className="mb-7">
-            <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Create your account</h1>
-            <p className="text-gray-500 text-sm mt-1">Fill in your details to get started</p>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight">Create your account</h1>
+            <p className="text-gray-500 dark:text-zinc-400 text-sm mt-1">Fill in your details to get started</p>
           </div>
 
           {error && (
-            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm mb-5">
+            <div className="bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 text-red-700 dark:text-red-400 px-4 py-3 rounded-xl text-sm mb-5">
               {error}
             </div>
           )}
@@ -128,34 +128,34 @@ export default function RegisterPage() {
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
-                <Label htmlFor="firstName" className="text-sm font-medium text-gray-700">First name</Label>
+                <Label htmlFor="firstName" className="text-sm font-medium text-gray-700 dark:text-zinc-300">First name</Label>
                 <Input id="firstName" placeholder="Soyinka" {...register("firstName")} className={inputClass(!!errors.firstName)} />
                 {errors.firstName && <p className="text-red-500 text-xs">{errors.firstName.message}</p>}
               </div>
               <div className="space-y-1.5">
-                <Label htmlFor="lastName" className="text-sm font-medium text-gray-700">Last name</Label>
+                <Label htmlFor="lastName" className="text-sm font-medium text-gray-700 dark:text-zinc-300">Last name</Label>
                 <Input id="lastName" placeholder="Wole" {...register("lastName")} className={inputClass(!!errors.lastName)} />
                 {errors.lastName && <p className="text-red-500 text-xs">{errors.lastName.message}</p>}
               </div>
             </div>
 
             <div className="space-y-1.5">
-              <Label htmlFor="email" className="text-sm font-medium text-gray-700">Email address</Label>
+              <Label htmlFor="email" className="text-sm font-medium text-gray-700 dark:text-zinc-300">Email address</Label>
               <Input id="email" type="email" placeholder="you@example.com" {...register("email")} className={inputClass(!!errors.email)} />
               {errors.email && <p className="text-red-500 text-xs">{errors.email.message}</p>}
             </div>
 
             <div className="space-y-1.5">
-              <Label htmlFor="phoneNumber" className="text-sm font-medium text-gray-700">Phone number</Label>
+              <Label htmlFor="phoneNumber" className="text-sm font-medium text-gray-700 dark:text-zinc-300">Phone number</Label>
               <Input id="phoneNumber" type="tel" placeholder="08012345678" {...register("phoneNumber")} className={inputClass(!!errors.phoneNumber)} />
               {errors.phoneNumber && <p className="text-red-500 text-xs">{errors.phoneNumber.message}</p>}
             </div>
 
             <div className="space-y-1.5">
-              <Label htmlFor="password" className="text-sm font-medium text-gray-700">Password</Label>
+              <Label htmlFor="password" className="text-sm font-medium text-gray-700 dark:text-zinc-300">Password</Label>
               <div className="relative">
                 <Input id="password" type={showPassword ? "text" : "password"} placeholder="••••••••" {...register("password")} className={inputClass(!!errors.password) + " pr-11"} />
-                <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors">
+                <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 dark:text-zinc-500 hover:text-gray-600 dark:hover:text-zinc-300 transition-colors">
                   {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                 </button>
               </div>
@@ -163,10 +163,10 @@ export default function RegisterPage() {
             </div>
 
             <div className="space-y-1.5">
-              <Label htmlFor="confirmPassword" className="text-sm font-medium text-gray-700">Confirm password</Label>
+              <Label htmlFor="confirmPassword" className="text-sm font-medium text-gray-700 dark:text-zinc-300">Confirm password</Label>
               <div className="relative">
                 <Input id="confirmPassword" type={showConfirm ? "text" : "password"} placeholder="••••••••" {...register("confirmPassword")} className={inputClass(!!errors.confirmPassword) + " pr-11"} />
-                <button type="button" onClick={() => setShowConfirm(!showConfirm)} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors">
+                <button type="button" onClick={() => setShowConfirm(!showConfirm)} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 dark:text-zinc-500 hover:text-gray-600 dark:hover:text-zinc-300 transition-colors">
                   {showConfirm ? <EyeOff size={16} /> : <Eye size={16} />}
                 </button>
               </div>
@@ -184,7 +184,7 @@ export default function RegisterPage() {
             </button>
           </form>
 
-          <p className="text-center text-sm text-gray-500 mt-7">
+          <p className="text-center text-sm text-gray-500 dark:text-zinc-400 mt-7">
             Already have an account?{" "}
             <Link href="/login" className="text-emerald-600 font-semibold hover:text-emerald-700">
               Sign in

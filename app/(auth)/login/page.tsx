@@ -83,7 +83,7 @@ function LoginForm() {
   };
 
   return (
-    <div className="min-h-screen flex bg-white">
+    <div className="min-h-screen flex bg-white dark:bg-zinc-900">
       {/* Left panel — brand */}
       <div className="hidden lg:flex lg:w-[45%] bg-gradient-to-br from-emerald-600 via-emerald-500 to-teal-500 flex-col justify-between p-12 relative overflow-hidden">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,_rgba(0,0,0,0.15),_transparent_70%)]" />
@@ -123,48 +123,48 @@ function LoginForm() {
       </div>
 
       {/* Right panel — form */}
-      <div className="flex-1 flex items-center justify-center px-6 py-12 lg:px-16">
+      <div className="flex-1 flex items-center justify-center px-6 py-12 lg:px-16 bg-white dark:bg-zinc-900">
         <div className="w-full max-w-sm">
           {/* Mobile logo */}
           <div className="flex items-center gap-3 mb-10 lg:hidden">
             <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center font-bold text-white">
               A
             </div>
-            <span className="font-semibold text-gray-900">Ajo Platform</span>
+            <span className="font-semibold text-gray-900 dark:text-white">Ajo Platform</span>
           </div>
 
           <div className="mb-8">
-            <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Welcome back</h1>
-            <p className="text-gray-500 text-sm mt-1">Sign in to continue to your account</p>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight">Welcome back</h1>
+            <p className="text-gray-500 dark:text-zinc-400 text-sm mt-1">Sign in to continue to your account</p>
           </div>
 
           {justRegistered && (
-            <div className="bg-emerald-50 border border-emerald-200 text-emerald-700 px-4 py-3 rounded-xl text-sm mb-5">
+            <div className="bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/20 text-emerald-700 dark:text-emerald-400 px-4 py-3 rounded-xl text-sm mb-5">
               Account created! Sign in to continue.
             </div>
           )}
           {error && (
-            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm mb-5">
+            <div className="bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 text-red-700 dark:text-red-400 px-4 py-3 rounded-xl text-sm mb-5">
               {error}
             </div>
           )}
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
             <div className="space-y-1.5">
-              <Label htmlFor="email" className="text-sm font-medium text-gray-700">Email address</Label>
+              <Label htmlFor="email" className="text-sm font-medium text-gray-700 dark:text-zinc-300">Email address</Label>
               <Input
                 id="email"
                 type="email"
                 placeholder="you@example.com"
                 {...register("email")}
-                className={`h-11 rounded-xl border-gray-200 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-400 transition-all ${errors.email ? "border-red-400 bg-red-50" : ""}`}
+                className={`h-11 rounded-xl border-gray-200 dark:border-zinc-700 bg-gray-50 dark:bg-zinc-800 dark:text-white dark:placeholder:text-zinc-500 focus:bg-white dark:focus:bg-zinc-700 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-400 transition-all ${errors.email ? "border-red-400 bg-red-50 dark:bg-red-500/10" : ""}`}
               />
               {errors.email && <p className="text-red-500 text-xs">{errors.email.message}</p>}
             </div>
 
             <div className="space-y-1.5">
               <div className="flex items-center justify-between">
-                <Label htmlFor="password" className="text-sm font-medium text-gray-700">Password</Label>
+                <Label htmlFor="password" className="text-sm font-medium text-gray-700 dark:text-zinc-300">Password</Label>
                 <Link href="/forgot-password" className="text-xs text-emerald-600 hover:text-emerald-700 font-medium">
                   Forgot password?
                 </Link>
@@ -175,12 +175,12 @@ function LoginForm() {
                   type={showPassword ? "text" : "password"}
                   placeholder="••••••••"
                   {...register("password")}
-                  className={`h-11 rounded-xl border-gray-200 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-400 transition-all pr-11 ${errors.password ? "border-red-400 bg-red-50" : ""}`}
+                  className={`h-11 rounded-xl border-gray-200 dark:border-zinc-700 bg-gray-50 dark:bg-zinc-800 dark:text-white dark:placeholder:text-zinc-500 focus:bg-white dark:focus:bg-zinc-700 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-400 transition-all pr-11 ${errors.password ? "border-red-400 bg-red-50 dark:bg-red-500/10" : ""}`}
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 dark:text-zinc-500 hover:text-gray-600 dark:hover:text-zinc-300 transition-colors"
                 >
                   {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                 </button>
@@ -199,7 +199,7 @@ function LoginForm() {
             </button>
           </form>
 
-          <p className="text-center text-sm text-gray-500 mt-8">
+          <p className="text-center text-sm text-gray-500 dark:text-zinc-400 mt-8">
             Don&apos;t have an account?{" "}
             <Link href="/register" className="text-emerald-600 font-semibold hover:text-emerald-700">
               Create one

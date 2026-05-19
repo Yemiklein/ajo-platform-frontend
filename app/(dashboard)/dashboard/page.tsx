@@ -60,7 +60,7 @@ export default function DashboardPage() {
   const hasActiveGroup = activeGroups.length > 0;
   const hasPayout = payouts.length > 0;
   const onboardingComplete = hasGroup && hasActiveGroup && hasPayout;
-  const showOnboarding = !loading && !isNewUser && !onboardingComplete && !onboardingDismissed;
+  const showOnboarding = !loading && !onboardingComplete && !onboardingDismissed;
 
   const onboardingTasks = [
     { label: "Create or join a savings group", done: hasGroup, href: hasGroup ? "/groups" : "/groups/create" },
