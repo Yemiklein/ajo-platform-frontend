@@ -1,16 +1,41 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useAuthStore } from "@/store/authStore";
-import { authAPI } from "@/lib/api";
+import { authAPI, bankAccountAPI } from "@/lib/api";
+import { BankAccount } from "@/types";
 import TopBar from "@/components/shared/TopBar";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { User, Mail, Phone, Shield, Eye, EyeOff, KeyRound, Calendar } from "lucide-react";
+import { User, Mail, Phone, Shield, Eye, EyeOff, KeyRound, Calendar, Landmark, Plus } from "lucide-react";
 import { toast } from "sonner";
+
+const NIGERIAN_BANKS = [
+  { name: "Access Bank", code: "044" },
+  { name: "Ecobank Nigeria", code: "050" },
+  { name: "Fidelity Bank", code: "070" },
+  { name: "First Bank of Nigeria", code: "011" },
+  { name: "FCMB", code: "214" },
+  { name: "GTBank", code: "058" },
+  { name: "Heritage Bank", code: "030" },
+  { name: "Keystone Bank", code: "082" },
+  { name: "Kuda Bank", code: "090267" },
+  { name: "Moniepoint MFB", code: "50515" },
+  { name: "OPay", code: "100004" },
+  { name: "PalmPay", code: "100033" },
+  { name: "Polaris Bank", code: "076" },
+  { name: "Providus Bank", code: "101" },
+  { name: "Stanbic IBTC Bank", code: "221" },
+  { name: "Sterling Bank", code: "232" },
+  { name: "Union Bank of Nigeria", code: "032" },
+  { name: "United Bank for Africa (UBA)", code: "033" },
+  { name: "Unity Bank", code: "215" },
+  { name: "Wema Bank", code: "035" },
+  { name: "Zenith Bank", code: "057" },
+];
 
 const profileSchema = z.object({
   firstName: z.string().min(2, "First name is required"),
@@ -46,6 +71,18 @@ export default function ProfilePage() {
   const [otp, setOtp] = useState("");
   const [otpLoading, setOtpLoading] = useState(false);
   const [pendingPasswordData, setPendingPasswordData] = useState<PasswordForm | null>(null);
+
+  // Bank account state
+  const [bankAccount, setBankAccount] = useState<BankAccount | null>(null);
+  const [bankMode, setBankMode] = useState(false);
+  const [bankLoading, setBankLoading] = useState(false);
+  const [bankForm, setBankForm] = useState({ accountNumber: "", bankCode: "", bankName: "", accountName: "" });
+
+  useEffect(() => {
+    bankAccountAPI.get()
+      .then((res) => setBankAccount(res.data))
+      .catch(() => setBankAccount(null));
+  }, []);
 
   const {
     register,
@@ -124,6 +161,38 @@ export default function ProfilePage() {
     setOtp("");
     setPendingPasswordData(null);
     resetPw();
+  };
+
+  const openBankEdit = () => {
+    setBankForm({
+      accountNumber: bankAccount?.accountNumber || "",
+      bankCode: bankAccount?.bankCode || "",
+      bankName: bankAccount?.bankName || "",
+      accountName: bankAccount?.accountName || "",
+    });
+    setBankMode(true);
+  };
+
+  const saveBankAccount = async () => {
+    if (!bankForm.accountNumber || !bankForm.bankCode || !bankForm.accountName) {
+      toast.error("Please fill in all fields.");
+      return;
+    }
+    if (!/^\d{10}$/.test(bankForm.accountNumber)) {
+      toast.error("Account number must be exactly 10 digits.");
+      return;
+    }
+    setBankLoading(true);
+    try {
+      const res = await bankAccountAPI.save(bankForm);
+      setBankAccount(res.data);
+      setBankMode(false);
+      toast.success("Payout account saved successfully!");
+    } catch {
+      toast.error("Failed to save bank account. Please try again.");
+    } finally {
+      setBankLoading(false);
+    }
   };
 
   return (
@@ -312,6 +381,126 @@ export default function ProfilePage() {
                 </p>
               </div>
             )}
+          </div>
+
+          {/* Payout Account */}
+          <div className="bg-white dark:bg-zinc-800 rounded-2xl border border-gray-100 dark:border-zinc-700 shadow-sm">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-50 dark:border-zinc-700">
+              <div className="flex items-center gap-2.5">
+                <Landmark size={16} className="text-gray-400 dark:text-zinc-500" />
+                <h3 className="font-semibold text-gray-900 dark:text-white">Payout Account</h3>
+              </div>
+              {!bankMode && bankAccount && (
+                <button
+                  onClick={openBankEdit}
+                  className="text-xs font-medium text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 border border-emerald-200 dark:border-emerald-500/30 px-3 py-1.5 rounded-lg hover:bg-emerald-50 dark:hover:bg-emerald-500/10 transition-all"
+                >
+                  Edit
+                </button>
+              )}
+            </div>
+
+            <div className="p-6">
+              {!bankMode ? (
+                bankAccount ? (
+                  <div className="space-y-3">
+                    {[
+                      { label: "Account Number", value: `****${bankAccount.accountNumber.slice(-4)}` },
+                      { label: "Bank", value: bankAccount.bankName },
+                      { label: "Account Name", value: bankAccount.accountName },
+                    ].map(({ label, value }) => (
+                      <div key={label} className="flex items-center gap-3 p-3 rounded-xl bg-gray-50 dark:bg-zinc-700/50">
+                        <Landmark size={16} className="text-gray-400 dark:text-zinc-500 flex-shrink-0" />
+                        <div>
+                          <p className="text-xs text-gray-400 dark:text-zinc-500">{label}</p>
+                          <p className="text-sm font-medium text-gray-900 dark:text-white">{value}</p>
+                        </div>
+                      </div>
+                    ))}
+                    <p className="text-xs text-emerald-600 dark:text-emerald-400 mt-2 flex items-center gap-1.5">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block" />
+                      Payouts will be sent to this account
+                    </p>
+                  </div>
+                ) : (
+                  <div className="text-center py-6">
+                    <div className="w-12 h-12 rounded-2xl bg-amber-50 dark:bg-amber-500/10 flex items-center justify-center mx-auto mb-3">
+                      <Landmark size={20} className="text-amber-500 dark:text-amber-400" />
+                    </div>
+                    <p className="text-sm font-semibold text-gray-700 dark:text-zinc-300">No payout account added</p>
+                    <p className="text-xs text-gray-400 dark:text-zinc-500 mt-1 max-w-xs mx-auto">
+                      Add your bank account so the group creator can disburse your payout directly.
+                    </p>
+                    <button
+                      onClick={openBankEdit}
+                      className="inline-flex items-center gap-1.5 mt-4 h-9 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold transition-all"
+                    >
+                      <Plus size={13} /> Add Bank Account
+                    </button>
+                  </div>
+                )
+              ) : (
+                <div className="space-y-4">
+                  <div className="space-y-1.5">
+                    <Label className="text-sm font-medium text-gray-700 dark:text-zinc-300">Account Number</Label>
+                    <Input
+                      type="text"
+                      inputMode="numeric"
+                      maxLength={10}
+                      placeholder="0123456789"
+                      value={bankForm.accountNumber}
+                      onChange={(e) => setBankForm((f) => ({ ...f, accountNumber: e.target.value.replace(/\D/g, "") }))}
+                      className={inputClass()}
+                    />
+                    <p className="text-[11px] text-gray-400 dark:text-zinc-500">Must be exactly 10 digits</p>
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <Label className="text-sm font-medium text-gray-700 dark:text-zinc-300">Bank</Label>
+                    <select
+                      value={bankForm.bankCode}
+                      onChange={(e) => {
+                        const bank = NIGERIAN_BANKS.find((b) => b.code === e.target.value);
+                        setBankForm((f) => ({ ...f, bankCode: e.target.value, bankName: bank?.name || "" }));
+                      }}
+                      className="w-full h-11 rounded-xl border border-gray-200 dark:border-zinc-600 bg-gray-50 dark:bg-zinc-700 dark:text-white text-sm px-3 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-400 transition-all"
+                    >
+                      <option value="">Select your bank</option>
+                      {NIGERIAN_BANKS.map((b) => (
+                        <option key={b.code} value={b.code}>{b.name}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <Label className="text-sm font-medium text-gray-700 dark:text-zinc-300">Account Name</Label>
+                    <Input
+                      type="text"
+                      placeholder="Name on the bank account"
+                      value={bankForm.accountName}
+                      onChange={(e) => setBankForm((f) => ({ ...f, accountName: e.target.value }))}
+                      className={inputClass()}
+                    />
+                  </div>
+
+                  <div className="flex gap-3 pt-1">
+                    <button
+                      onClick={saveBankAccount}
+                      disabled={bankLoading}
+                      className="h-10 px-5 rounded-xl bg-emerald-600 hover:bg-emerald-700 disabled:opacity-60 text-white text-sm font-semibold transition-all"
+                    >
+                      {bankLoading ? "Saving..." : "Save Account"}
+                    </button>
+                    <button
+                      onClick={() => setBankMode(false)}
+                      className="h-10 px-5 rounded-xl border border-gray-200 dark:border-zinc-600 text-gray-600 dark:text-zinc-300 text-sm font-medium hover:bg-gray-50 dark:hover:bg-zinc-700 transition-all"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Account Info */}

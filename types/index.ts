@@ -128,6 +128,15 @@ export interface PaymentInitResponse {
 }
 
 
+// ===== Bank Account =====
+export interface BankAccount {
+  id?: number;
+  accountNumber: string;
+  bankCode: string;
+  bankName: string;
+  accountName: string;
+}
+
 // ===== Admin =====
 export type FraudAlertStatus =
   | "PENDING"

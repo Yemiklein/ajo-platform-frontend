@@ -128,14 +128,19 @@ export default function PayoutsPage() {
                           Cycle {payout.cycleNumber} Payout
                         </p>
                         <p className="text-xs text-gray-400 dark:text-zinc-500 mt-0.5">
-                          {payout.disbursedAt
-                            ? new Date(payout.disbursedAt).toLocaleDateString("en-NG", {
-                                day: "numeric",
-                                month: "short",
-                                year: "numeric",
-                              })
+                          {payout.recipient
+                            ? `To: ${payout.recipient.firstName} ${payout.recipient.lastName}`
                             : payout.narration || "Pending disbursement"}
                         </p>
+                        {payout.disbursedAt && (
+                          <p className="text-xs text-gray-400 dark:text-zinc-500 mt-0.5">
+                            {new Date(payout.disbursedAt).toLocaleDateString("en-NG", {
+                              day: "numeric",
+                              month: "short",
+                              year: "numeric",
+                            })}
+                          </p>
+                        )}
                       </div>
                     </div>
                     <div className="text-right flex-shrink-0">

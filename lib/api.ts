@@ -124,6 +124,14 @@ export const paymentsAPI = {
     api.post("/api/payments/initialize", data),
 };
 
+// ===== Bank Account =====
+export const bankAccountAPI = {
+  get: () => api.get("/api/users/me/bank-account"),
+  save: (data: import("@/types").BankAccount) =>
+    api.post("/api/users/me/bank-account", data),
+  remove: () => api.delete("/api/users/me/bank-account"),
+};
+
 // ===== Admin =====
 export const adminAPI = {
   getFraudAlerts: () => api.get("/api/admin/fraud-alerts"),
